@@ -41,24 +41,8 @@ export const contentTree: Node = {
                         { id: 'alchemy', type: 'project', title: 'Alchemy', description: LOREM_IPSUM },
                         { id: 'tavernator', type: 'project', title: 'Tavernator', description: LOREM_IPSUM },
                     ]
-                },
-                {
-                    id: 'design-philosophy',
-                    type: 'category',
-                    title: 'Design Philosophy',
-                    children: [
-                        { id: 'system-theme', type: 'project', title: 'System>Theme', description: LOREM_IPSUM },
-                        { id: 'incentives', type: 'project', title: 'Incentives Create Behaviors', description: LOREM_IPSUM },
-                        { id: 'resource-balancing', type: 'project', title: 'Resource and Balancing', description: LOREM_IPSUM },
-
-
-                        { id: 'skill-vs-luck', type: 'project', title: 'Skill vs Luck', description: LOREM_IPSUM },
-                        { id: 'favor-laggard', type: 'project', title: 'Favor the laggard', description: LOREM_IPSUM },
-                        { id: 'choice-variety', type: 'project', title: 'Choice variety creates depth', description: LOREM_IPSUM },
-
-
-                    ]
                 }
+
             ]
         },
         {
@@ -66,8 +50,8 @@ export const contentTree: Node = {
             type: 'category',
             title: 'Experiments',
             children: [
-                { id: 'city-scape', type: 'experiment', title: 'City Scape', description: LOREM_IPSUM },
-                { id: 'microbial-growth', type: 'experiment', title: 'Microbial Growth', description: LOREM_IPSUM },
+                { id: 'city-scape', type: 'experiment', title: 'City Scape', description: LOREM_IPSUM, experimentUrl: 'https://stonecallstudio.com/JSTests/City_Scape/index.html' },
+                { id: 'microbial-growth', type: 'experiment', title: 'Microbial Growth', description: LOREM_IPSUM, experimentUrl: 'https://stonecallstudio.com/JSTests/Microbial_Growth/index.html' },
                 { id: 'music-visualizer', type: 'experiment', title: 'Music Visualizer', description: LOREM_IPSUM },
                 { id: 'net', type: 'experiment', title: 'Net', description: LOREM_IPSUM },
                 { id: 'touch-dots', type: 'experiment', title: 'Touch Dots', description: LOREM_IPSUM },
@@ -93,7 +77,23 @@ export const contentTree: Node = {
             type: 'category',
             title: 'Thoughts',
             description: 'Essays & Musings',
-            children: []
+            children: [{
+                id: 'design-philosophy',
+                type: 'category',
+                title: 'Design Philosophy',
+                children: [
+                    { id: 'system-theme', type: 'project', title: 'System>Theme', description: LOREM_IPSUM },
+                    { id: 'incentives', type: 'project', title: 'Incentives Create Behaviors', description: LOREM_IPSUM },
+                    { id: 'resource-balancing', type: 'project', title: 'Resource and Balancing', description: LOREM_IPSUM },
+
+
+                    { id: 'skill-vs-luck', type: 'project', title: 'Skill vs Luck', description: LOREM_IPSUM },
+                    { id: 'favor-laggard', type: 'project', title: 'Favor the laggard', description: LOREM_IPSUM },
+                    { id: 'choice-variety', type: 'project', title: 'Choice variety creates depth', description: LOREM_IPSUM },
+
+
+                ]
+            }]
         },
         {
             id: 'about',

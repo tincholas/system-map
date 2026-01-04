@@ -64,13 +64,66 @@ export const NodeCard = ({ node, isActive, onClick, animationDelay = 0 }: NodeCa
     config: { mass: 1, tension: 170, friction: 26 }
   });
 
+  // Special Rendering for Experiment Previews (Virtual Child Nodes)
+  if (type === 'experiment-preview') {
+    return (
+      <animatedThree.group
+        // @ts-ignore
+        position={to([threeSpring.posX, threeSpring.posY], (px, py) => [px, py, 0])}
+      >
+        <Html
+          frustumCulled={false}
+          transform
+          center
+          scale={40}
+        >
+          <motion.div
+            initial={{ opacity: 0, scale: 0.9 }}
+            animate={{ opacity: 1, scale: 1 }}
+            transition={{ duration: 0.5, delay: animationDelay }}
+            className="w-[800px] h-[600px] bg-black border border-cyan-500 shadow-[0_0_30px_rgba(34,211,238,0.3)] overflow-hidden"
+          >
+            <div className="w-full h-8 bg-neutral-900 border-b border-cyan-500/30 flex items-center px-4">
+              <span className="text-xs font-mono text-cyan-400 uppercase">{title} PREVIEW</span>
+              {node.experimentUrl && (
+                <a href={node.experimentUrl} target="_blank" rel="noreferrer" className="ml-auto text-[10px] text-neutral-500 hover:text-white">
+                  OPEN IN NEW TAB ↗
+                </a>
+              )}
+            </div>
+            {node.experimentUrl && (
+              <iframe
+                src={node.experimentUrl}
+                className="w-full h-full bg-white"
+                title={`${title} Preview`}
+              />
+            )}
+            {!node.experimentUrl && (
+              <div className="w-full h-full flex items-center justify-center text-neutral-500">
+                NO URL PROVIDED
+              </div>
+            )}
+          </motion.div>
+        </Html>
+      </animatedThree.group>
+    );
+  }
+
   return (
     <animatedThree.group
       // @ts-ignore
       position={to([threeSpring.posX, threeSpring.posY], (px, py) => [px, py, 0])}
+      frustumCulled={false}
     >
+      {/* 
+         Invisible Frame for Frustum Culling:
+         Since the Group has no geometry, Three.js treats it as a point.
+         This mesh gives it a bounding box matching the card size, ensuring it remains
+         visible until the actual edges leave the screen.
+      */}
       <animatedThree.group>
         <Html
+          frustumCulled={false}
           transform
           center
           scale={40}
@@ -160,6 +213,7 @@ export const NodeCard = ({ node, isActive, onClick, animationDelay = 0 }: NodeCa
             </motion.div>
           </div>
         </Html>
+
       </animatedThree.group>
     </animatedThree.group>
   );

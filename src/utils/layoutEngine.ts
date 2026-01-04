@@ -37,18 +37,49 @@ interface NodeWithDimensions extends Omit<Node, 'children'> {
 
 function enrichWithHeight(node: Node, expandedIds: Set<string>): NodeWithDimensions {
     const isExpanded = expandedIds.has(node.id);
-    const hasChildren = node.children && node.children.length > 0;
+    // hasChildren logic moved below
 
     const isProject = node.type === 'project';
-    const width = (isExpanded && isProject) ? CONFIG.EXPANDED_WIDTH : CONFIG.NODE_WIDTH;
-    const height = (isExpanded && isProject) ? CONFIG.EXPANDED_HEIGHT : CONFIG.NODE_HEIGHT;
+    const isExperiment = node.type === 'experiment';
+    const isPreview = node.type === 'experiment-preview';
+
+    let width = CONFIG.NODE_WIDTH;
+    let height = CONFIG.NODE_HEIGHT;
+
+    if (isExpanded && isProject) {
+        width = CONFIG.EXPANDED_WIDTH;
+        height = CONFIG.EXPANDED_HEIGHT;
+    } else if (isPreview) {
+        width = CONFIG.EXPANDED_WIDTH; // Preview uses same size as expanded project
+        height = CONFIG.EXPANDED_HEIGHT;
+    }
+
+    // Logic to inject virtual child for expanded experiments
+    let processedChildren = node.children || [];
+    if (isExpanded && isExperiment && node.experimentUrl) {
+        const previewNode: Node = {
+            id: `${node.id}-preview`,
+            type: 'experiment-preview',
+            title: node.title, // Pass title for header
+            experimentUrl: node.experimentUrl
+        };
+        // If children exist, prepend or append? 
+        // Experiments usually are leaves, so they have no children. 
+        // If they did, preview might go first or last. Let's append.
+        processedChildren = [...processedChildren, previewNode];
+    }
+
+    // Check implies we treat the injected child as real for layout purposes
+    const hasChildren = processedChildren.length > 0;
 
     if (!isExpanded || !hasChildren) {
+        // ... (rest is similar but needs to use processedChildren if we want to handle non-expanded cases correctly? 
+        // No, if !isExpanded, we don't inject. So processedChildren is empty/original.)
         const { children, ...rest } = node;
         return { ...rest, children: undefined, branchHeight: height, width, height };
     }
 
-    const enrichedChildren = node.children!.map(child => enrichWithHeight(child, expandedIds));
+    const enrichedChildren = processedChildren.map(child => enrichWithHeight(child, expandedIds));
     const totalChildrenHeight = enrichedChildren.reduce((sum, child) => sum + child.branchHeight, 0);
     const totalGap = (enrichedChildren.length - 1) * CONFIG.VERTICAL_GAP;
     const branchHeight = Math.max(height, totalChildrenHeight + totalGap);

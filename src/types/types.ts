@@ -1,4 +1,4 @@
-export type NodeType = 'category' | 'project' | 'experiment';
+export type NodeType = 'category' | 'project' | 'experiment' | 'experiment-preview';
 export type NodeStatus = 'prototype' | 'production' | 'concept';
 
 export interface Node {
@@ -11,6 +11,7 @@ export interface Node {
   content?: string;     // Full Markdown content
   gallery?: string[];   // Array of image URLs
   mediaUrl?: string;
+  experimentUrl?: string; // URL for embedded experiment content
   children?: Node[];
 }
 
