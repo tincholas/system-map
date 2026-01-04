@@ -10,7 +10,7 @@ import { ConnectionLine } from './ConnectionLine';
 import { useRef, useEffect } from 'react';
 import { useThree, useFrame } from '@react-three/fiber';
 import { MapControls } from '@react-three/drei';
-import { useSpring, animated } from '@react-spring/three';
+import { useSpring, useTransition, animated } from '@react-spring/three';
 import { findNode, getDescendantIds } from '../utils/treeUtils';
 
 interface CameraControllerProps {
@@ -20,14 +20,14 @@ interface CameraControllerProps {
 
 // Camera controller to handle initial positioning and smooth transitions
 const CameraController = ({ layoutMap, activeId }: CameraControllerProps) => {
-    const { camera, viewport } = useThree();
+    const { camera, viewport, size } = useThree();
     const controlsRef = useRef<any>(null);
     const initializedRef = useRef(false);
 
     // Initial positioning: Left-align the root node (0,0) with 10% margin
     useEffect(() => {
         if (!initializedRef.current && controlsRef.current) {
-            const targetX = 0.4 * viewport.width;
+            const targetX = 0.4 * (size.width / 5);
 
             // Set Camera Position & Target immediately
             camera.position.x = targetX;
@@ -38,11 +38,11 @@ const CameraController = ({ layoutMap, activeId }: CameraControllerProps) => {
             controlsRef.current.update();
             initializedRef.current = true;
         }
-    }, [camera, viewport, controlsRef]);
+    }, [camera, size, controlsRef]);
 
     // Dynamic Panning: Animate to new Active Node
     const [spring, api] = useSpring(() => ({
-        targetX: 0.4 * viewport.width,
+        targetX: 0.4 * (size.width / 5),
         targetY: 0,
         targetZoom: 5,
         config: { mass: 1, tension: 100, friction: 26 }
@@ -68,12 +68,12 @@ const CameraController = ({ layoutMap, activeId }: CameraControllerProps) => {
             // Calculate Target Zoom:
             // Goal: Fit the node's branch height vertically AND the node's width horizontally.
             // 1. Height fit:
-            // viewport.height / zoom = node.branchHeight * 1.5 (padding)
-            const zoomHeight = viewport.height / (node.branchHeight * 1.5);
+            // size.height / zoom = node.branchHeight * 1.5 (padding)
+            const zoomHeight = size.height / (node.branchHeight * 1.5);
 
             // 2. Width fit:
-            // viewport.width / zoom = node.width * 1.5 (padding)
-            const zoomWidth = viewport.width / (node.width * 1.5);
+            // size.width / zoom = node.width * 1.5 (padding)
+            const zoomWidth = size.width / (node.width * 1.5);
 
             // Take the smaller zoom to ensure BOTH fit
             // And CLAMP strictly to prevent "wild" variability
@@ -81,9 +81,8 @@ const CameraController = ({ layoutMap, activeId }: CameraControllerProps) => {
             targetZoom = Math.max(0.4, Math.min(2.5, targetZoom));
 
             // Re-calculate target camera X based on the NEW zoom level
-            // The viewport width will change when we zoom.
-            // newViewportWidth = currentViewportWidth * (currentZoom / newZoom)
-            const targetViewportWidth = viewport.width * (camera.zoom / targetZoom);
+            // targetViewportWidth = size.width / targetZoom
+            const targetViewportWidth = size.width / targetZoom;
 
             // Now apply the 10% (0.4 factor from center) margin logic with the new width
             const targetX = node.x + (0.4 * targetViewportWidth);
@@ -112,7 +111,7 @@ const CameraController = ({ layoutMap, activeId }: CameraControllerProps) => {
                 }
             });
         }
-    }, [activeId, layoutMap, viewport, api, camera]);
+    }, [activeId, layoutMap, size, api, camera]);
 
     return (
         <MapControls
@@ -170,6 +169,15 @@ export const InfiniteCanvas = () => {
 
     const nodes = Array.from(layoutMap.values());
 
+    const transitions = useTransition(nodes, {
+        keys: item => item.id,
+        from: { opacity: 0, scale: 0, rotateX: -Math.PI / 2 },
+        enter: { opacity: 1, scale: 1, rotateX: 0 },
+        leave: { opacity: 0, scale: 0, rotateX: -Math.PI / 2 },
+        config: { mass: 1, tension: 170, friction: 26 },
+        trail: 25
+    });
+
     return (
         <div className="w-full h-screen bg-[#050505] text-white overflow-hidden">
             <Canvas orthographic camera={{ zoom: 5, position: [0, 0, 100], near: -10000, far: 10000 }}>
@@ -187,26 +195,19 @@ export const InfiniteCanvas = () => {
                         const parent = layoutMap.get(node.parentId);
                         if (!parent) return null;
 
-                        // Line animates with a slight lead before the card appears
-                        const baseDelay = node.level * 0.08;
-                        const siblingDelay = (index % 10) * 0.05;
-                        const lineDelay = Math.max(0, baseDelay + siblingDelay - 0.1);
-
                         return (
                             <ConnectionLine
                                 key={`line-${node.id}`}
                                 parent={parent}
                                 child={node}
-                                animationDelay={lineDelay}
+                                animationDelay={0}
                             />
                         );
                     })}
 
-                    {/* Render Nodes with staggered animation delays */}
-                    {nodes.map((node, index) => {
-                        const baseDelay = node.level * 0.08;
-                        const siblingDelay = (index % 10) * 0.05;
-                        const animationDelay = baseDelay + siblingDelay;
+                    {/* Render Nodes with useTransition for entering/exiting animations */}
+                    {transitions((style, node) => {
+                        const animationDelay = node.level * 0.05;
 
                         return (
                             <NodeCard
@@ -215,6 +216,8 @@ export const InfiniteCanvas = () => {
                                 isActive={activeId === node.id}
                                 onClick={toggleNode}
                                 animationDelay={animationDelay}
+                                // @ts-ignore
+                                transitionStyle={style}
                             />
                         );
                     })}

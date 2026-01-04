@@ -72,21 +72,40 @@ export const contentTree: Node = {
             type: 'category',
             title: 'Experiments',
             children: [
-                { id: 'city-scape', type: 'experiment', title: 'City Scape', description: LOREM_IPSUM, experimentUrl: 'https://stonecallstudio.com/JSTests/City_Scape/index.html' },
-                { id: 'microbial-growth', type: 'experiment', title: 'Microbial Growth', description: LOREM_IPSUM, experimentUrl: 'https://stonecallstudio.com/JSTests/Microbial_Growth/index.html' },
-                { id: 'music-visualizer', type: 'experiment', title: 'Music Visualizer', description: LOREM_IPSUM },
-                { id: 'net', type: 'experiment', title: 'Net', description: LOREM_IPSUM },
-                { id: 'touch-dots', type: 'experiment', title: 'Touch Dots', description: LOREM_IPSUM },
-                { id: 'constellations', type: 'experiment', title: 'Constellations', description: LOREM_IPSUM },
-                { id: 'cube', type: 'experiment', title: 'Cube', description: LOREM_IPSUM },
-                { id: 'not-webgl', type: 'category', title: 'Not WebGL' },
-                { id: 'still-not-webgl', type: 'experiment', title: 'Still Not WebGL', description: LOREM_IPSUM },
-                { id: 'sketch', type: 'experiment', title: 'Sketch', description: LOREM_IPSUM },
-                { id: 'color-particles', type: 'experiment', title: 'Color Particles', description: LOREM_IPSUM },
-                { id: 'mandelbrot', type: 'experiment', title: 'Mandelbrot', description: LOREM_IPSUM },
-                { id: 'metaballs', type: 'experiment', title: 'Metaballs', description: LOREM_IPSUM },
-                { id: 'screensaver', type: 'experiment', title: 'Screensaver', description: LOREM_IPSUM },
-                { id: 'shadows', type: 'experiment', title: 'Shadows', description: LOREM_IPSUM },
+                {
+                    id: '3d folder', type: 'category', title: '3D Experiments', children: [
+                        { id: 'city-scape', type: 'experiment', title: 'City Scape', description: LOREM_IPSUM, experimentUrl: 'https://stonecallstudio.com/JSTests/City_Scape/index.html' },
+                        { id: 'cube', type: 'experiment', title: 'Cube', description: LOREM_IPSUM },
+                        { id: 'not-webgl', type: 'category', title: 'Not WebGL' },
+                        { id: 'still-not-webgl', type: 'experiment', title: 'Still Not WebGL', description: LOREM_IPSUM },
+                    ]
+                },
+                {
+                    id: 'particle-folder', type: 'category', title: 'Particle Experiments', children: [
+                        { id: 'touch-dots', type: 'experiment', title: 'Touch Dots', description: LOREM_IPSUM },
+
+                        { id: 'microbial-growth', type: 'experiment', title: 'Microbial Growth', description: LOREM_IPSUM, experimentUrl: 'https://stonecallstudio.com/JSTests/Microbial_Growth/index.html' },
+                        { id: 'constellations', type: 'experiment', title: 'Constellations', description: LOREM_IPSUM },
+                        { id: 'sketch', type: 'experiment', title: 'Sketch', description: LOREM_IPSUM },
+                        { id: 'color-particles', type: 'experiment', title: 'Color Particles', description: LOREM_IPSUM },
+                        { id: 'net', type: 'experiment', title: 'Net', description: LOREM_IPSUM },
+                    ]
+                },
+                {
+                    id: 'other-folder', type: 'category', title: 'Other Experiments', children: [
+                        { id: 'music-visualizer', type: 'experiment', title: 'Music Visualizer', description: LOREM_IPSUM },
+
+                        { id: 'mandelbrot', type: 'experiment', title: 'Mandelbrot', description: LOREM_IPSUM },
+                        { id: 'metaballs', type: 'experiment', title: 'Metaballs', description: LOREM_IPSUM },
+                        { id: 'screensaver', type: 'experiment', title: 'Screensaver', description: LOREM_IPSUM },
+                        { id: 'shadows', type: 'experiment', title: 'Shadows', description: LOREM_IPSUM },
+                    ]
+                }
+
+
+
+
+
             ]
         },
         {

@@ -18,6 +18,7 @@ interface NodeCardProps {
   isActive: boolean;
   onClick: (id: string) => void;
   animationDelay?: number;
+  transitionStyle?: any; // Received from useTransition
 }
 
 // Two-phase animation: scaleX (horizontal line) → rotateX (flip toward camera)
@@ -32,7 +33,9 @@ const enterVariants = {
   },
 };
 
-export const NodeCard = ({ node, isActive, onClick, animationDelay = 0 }: NodeCardProps) => {
+
+
+export const NodeCard = ({ node, isActive, onClick, animationDelay = 0, transitionStyle }: NodeCardProps) => {
   const { x, y, width, height, title, type, status, description, isExpanded, content } = node;
 
   // Track if this node has completed its enter animation
@@ -72,19 +75,34 @@ export const NodeCard = ({ node, isActive, onClick, animationDelay = 0 }: NodeCa
     return (
       <animatedThree.group
         // @ts-ignore
-        position={to([threeSpring.posX, threeSpring.posY], (px, py) => [px, py, 0])}
+        // @ts-ignore
+        // Add slight Z-offset (higher than standard nodes) to ensure previews are always on top
+        position={to([threeSpring.posX, threeSpring.posY], (px, py) => [px, py, px * 0.001 + 5])}
+        scale={transitionStyle?.scale || 1}
+        // @ts-ignore
+        rotation={transitionStyle?.rotateX ? transitionStyle.rotateX.to((val: number) => [val, 0, 0]) : [0, 0, 0]}
+        frustumCulled={false}
       >
         <Html
-          frustumCulled={false}
+          zIndexRange={[100, 0]}
           transform
           center
           scale={40}
+          style={{
+            // @ts-ignore
+            opacity: transitionStyle.opacity
+          }}
         >
           <motion.div
             initial={{ opacity: 0, scale: 0.9 }}
             animate={{ opacity: 1, scale: 1 }}
             transition={{ duration: 0.5, delay: animationDelay }}
-            className="w-[800px] h-[600px] bg-black border border-cyan-500 shadow-[0_0_30px_rgba(34,211,238,0.3)] overflow-hidden"
+            className={`
+              pointer-events-auto
+              w-[800px] h-[600px]
+              bg-black border border-neutral-800 rounded-lg overflow-hidden shadow-2xl
+              flex flex-col relative
+            `}
           >
             <div className="w-full h-8 bg-neutral-900 border-b border-cyan-500/30 flex items-center px-4">
               <span className="text-xs font-mono text-cyan-400 uppercase">{title} PREVIEW</span>
@@ -115,7 +133,11 @@ export const NodeCard = ({ node, isActive, onClick, animationDelay = 0 }: NodeCa
   return (
     <animatedThree.group
       // @ts-ignore
-      position={to([threeSpring.posX, threeSpring.posY], (px, py) => [px, py, 0])}
+      // @ts-ignore
+      // Add slight Z-offset based on X to resolve z-fighting and ensure children (higher X) represent in front of parents
+      position={to([threeSpring.posX, threeSpring.posY], (px, py) => [px, py, px * 0.001])}
+      // @ts-ignore
+      rotation={transitionStyle?.rotateX ? transitionStyle.rotateX.to((val: number) => [val, 0, 0]) : [0, 0, 0]}
       frustumCulled={false}
     >
       {/* 
@@ -127,14 +149,20 @@ export const NodeCard = ({ node, isActive, onClick, animationDelay = 0 }: NodeCa
       <animatedThree.group>
         <Html
           frustumCulled={false}
+          zIndexRange={[100, 0]} // Higher z-index for closer objects (Three.js standard behavior)
           transform
           center
           scale={40}
+          style={{
+            // Remove huge wrapper size, let it fit content
+            // @ts-ignore
+            opacity: transitionStyle?.opacity?.to((o: number) => o) ?? 1
+          }}
         >
-          {/* Perspective container - perspective must be on parent */}
-          <div style={{ perspective: '600px' }}>
-            {/* Flip animation wrapper - this is what rotates */}
+          {/* Perspective container */}
+          <div style={{ perspective: '800px' }} className="pointer-events-none">
             <motion.div
+              className="pointer-events-none"
               style={{
                 transformStyle: 'preserve-3d',
                 transformOrigin: 'top center',
@@ -149,9 +177,9 @@ export const NodeCard = ({ node, isActive, onClick, animationDelay = 0 }: NodeCa
                 delay: hasEnteredView ? 0 : animationDelay,
               }}
             >
-              {/* Outer container with border - animates size */}
               <animatedWeb.div
                 className={`
+                  pointer-events-auto
                   bg-neutral-900/80 backdrop-blur-md border border-cyan-500/30
                   hover:border-cyan-400 hover:shadow-[0_0_15px_rgba(34,211,238,0.2)]
                   transition-colors duration-300
@@ -231,6 +259,7 @@ export const NodeCard = ({ node, isActive, onClick, animationDelay = 0 }: NodeCa
               </animatedWeb.div>
             </motion.div>
           </div>
+
         </Html>
 
       </animatedThree.group>
