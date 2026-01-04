@@ -69,6 +69,7 @@ export const NodeCard = ({ node, isActive, onClick, animationDelay = 0 }: NodeCa
           style={{
             transformStyle: 'preserve-3d',
             backfaceVisibility: 'hidden',
+            transformOrigin: 'top center',
           }}
           onClick={(e) => {
             e.stopPropagation();

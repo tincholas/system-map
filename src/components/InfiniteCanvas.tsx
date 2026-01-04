@@ -48,11 +48,24 @@ export const InfiniteCanvas = () => {
 
                 <group>
                     {/* Render Lines first so they are behind nodes */}
-                    {nodes.map(node => {
+                    {nodes.map((node, index) => {
                         if (!node.parentId) return null;
                         const parent = layoutMap.get(node.parentId);
                         if (!parent) return null;
-                        return <ConnectionLine key={`line-${node.id}`} parent={parent} child={node} />;
+
+                        // Line animates with a slight lead before the card appears
+                        const baseDelay = node.level * 0.08;
+                        const siblingDelay = (index % 10) * 0.05;
+                        const lineDelay = Math.max(0, baseDelay + siblingDelay - 0.1);
+
+                        return (
+                            <ConnectionLine
+                                key={`line-${node.id}`}
+                                parent={parent}
+                                child={node}
+                                animationDelay={lineDelay}
+                            />
+                        );
                     })}
 
                     {/* Render Nodes with staggered animation delays */}
