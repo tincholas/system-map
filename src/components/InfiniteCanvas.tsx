@@ -125,11 +125,17 @@ const CameraController = ({ layoutMap, activeId }: CameraControllerProps) => {
     );
 };
 
-/* removed ZoomLogger */
-// ... imports cleanup ...
+import { Node } from '../types/types';
 
-export const InfiniteCanvas = () => {
-    // Initial state: Only root is visible (expandedIds empty implies only root exists as seed, children hidden)
+interface InfiniteCanvasProps {
+    initialData?: Node;
+}
+
+export const InfiniteCanvas = ({ initialData }: InfiniteCanvasProps) => {
+    // Use passed data, or fallback to hardcoded contentTree (for development/migration)
+    const rootData = useMemo(() => initialData || contentTree, [initialData]);
+
+    // Initial state setup
     const [expandedIds, setExpandedIds] = useState<Set<string>>(new Set([]));
     const [activeId, setActiveId] = useState<string | null>(null);
 
@@ -138,34 +144,36 @@ export const InfiniteCanvas = () => {
         let nextActiveId = id;
 
         if (newSet.has(id)) {
-            // Collapsing: Remove node and descendants
+            // Collapsing logic ...
             newSet.delete(id);
-            const node = findNode(contentTree, id);
+            const node = findNode(rootData, id); // Use rootData instead of contentTree
             if (node) {
                 const descendants = getDescendantIds(node);
                 descendants.forEach(dId => newSet.delete(dId));
 
-                // On collapse, focus on the Parent (or Root if no parent)
-                // This zooms out to show the context where this node lives.
-                nextActiveId = node.parentId || 'root';
+                // Parent focus logic
+                if (node.parentId) {
+                    nextActiveId = node.parentId;
+                } else {
+                    // Collapsing root? Keep root active
+                    nextActiveId = node.id;
+                }
             }
         } else {
-            // Expanding: Add node
+            // Expanding logic ...
+            // Focus on the node we just clicked to center it
             newSet.add(id);
-            // On expand, focus on the Node itself
-            // This zooms in to show its new children.
-            nextActiveId = id;
         }
+
         setExpandedIds(newSet);
         setActiveId(nextActiveId);
     };
 
+    // Recalculate layout whenever expansion state OR data changes
     const layoutMap = useMemo(() => {
-        // If expandedIds is empty, we must ensure Root is still in layout.
-        // layoutEngine handles root passed as argument.
-        // expandedIds controls CHILDREN visibility.
-        return calculateLayout(contentTree, expandedIds);
-    }, [expandedIds]);
+        return calculateLayout(rootData, expandedIds);
+    }, [rootData, expandedIds]); // Depend on rootData
+
 
     const nodes = Array.from(layoutMap.values());
 
