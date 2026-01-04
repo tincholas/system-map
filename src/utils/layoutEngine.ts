@@ -66,6 +66,8 @@ function assignCoordinates(
     expandedIds: Set<string>,
     parentId?: string
 ) {
+    const isExpanded = expandedIds.has(node.id);
+
     // Store node with x=LeftEdge, y=CenterY
     map.set(node.id, {
         ...node,
@@ -76,9 +78,8 @@ function assignCoordinates(
         height: node.height,
         level,
         branchHeight: node.branchHeight,
+        isExpanded,
     });
-
-    const isExpanded = expandedIds.has(node.id);
 
     if (isExpanded && node.children && node.children.length > 0) {
         // Children start to the right of this node

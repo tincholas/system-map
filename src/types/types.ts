@@ -20,6 +20,7 @@ export interface LayoutNode extends Node {
   width: number;
   height: number;
   level: number;
-  branchHeight?: number; // Helper for layout calculation
-  parentId?: string;     // ID of parent node for connection lines
+  branchHeight?: number;
+  parentId?: string;
+  isExpanded?: boolean; // True if this node is in expanded state
 }

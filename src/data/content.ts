@@ -19,7 +19,7 @@ export const contentTree: Node = {
                     type: 'category',
                     title: 'Board Games',
                     children: [
-                        { id: 'dungeon-tavern', type: 'project', title: 'Dungeon Tavern', description: LOREM_IPSUM },
+                        { id: 'dungeon-tavern', type: 'project', title: 'Dungeon Tavern', description: '' },
                         { id: 'blade-master', type: 'project', title: 'Blade Master', description: LOREM_IPSUM },
                         { id: 'conspiracy-theory', type: 'project', title: 'Conspiracy Theory', description: LOREM_IPSUM },
                         { id: 'voc', type: 'project', title: 'VOC', description: LOREM_IPSUM },
@@ -47,19 +47,16 @@ export const contentTree: Node = {
                     type: 'category',
                     title: 'Design Philosophy',
                     children: [
-                        { id: 'system-theme', type: 'experiment', title: 'System>Theme', description: LOREM_IPSUM },
-                        { id: 'incentives', type: 'experiment', title: 'Incentives Create Behaviors', description: LOREM_IPSUM },
-                        { id: 'resource-balancing', type: 'experiment', title: 'Resource and Balancing', description: LOREM_IPSUM },
-                        {
-                            id: 'fun-driver',
-                            type: 'experiment',
-                            title: 'Fun is the driver',
-                            children: [
-                                { id: 'skill-vs-luck', type: 'experiment', title: 'Skill vs Luck', description: LOREM_IPSUM },
-                                { id: 'favor-laggard', type: 'experiment', title: 'Favor the laggard', description: LOREM_IPSUM },
-                                { id: 'choice-variety', type: 'experiment', title: 'Choice variety creates depth', description: LOREM_IPSUM },
-                            ]
-                        },
+                        { id: 'system-theme', type: 'project', title: 'System>Theme', description: LOREM_IPSUM },
+                        { id: 'incentives', type: 'project', title: 'Incentives Create Behaviors', description: LOREM_IPSUM },
+                        { id: 'resource-balancing', type: 'project', title: 'Resource and Balancing', description: LOREM_IPSUM },
+
+
+                        { id: 'skill-vs-luck', type: 'project', title: 'Skill vs Luck', description: LOREM_IPSUM },
+                        { id: 'favor-laggard', type: 'project', title: 'Favor the laggard', description: LOREM_IPSUM },
+                        { id: 'choice-variety', type: 'project', title: 'Choice variety creates depth', description: LOREM_IPSUM },
+
+
                     ]
                 }
             ]
@@ -80,10 +77,9 @@ export const contentTree: Node = {
                     id: 'not-webgl',
                     type: 'category',
                     title: 'Not WebGL',
-                    children: [
-                        { id: 'still-not-webgl', type: 'experiment', title: 'Still Not WebGL', description: LOREM_IPSUM },
-                    ]
+
                 },
+                { id: 'still-not-webgl', type: 'experiment', title: 'Still Not WebGL', description: LOREM_IPSUM },
                 { id: 'sketch', type: 'experiment', title: 'Sketch', description: LOREM_IPSUM },
                 { id: 'color-particles', type: 'experiment', title: 'Color Particles', description: LOREM_IPSUM },
                 { id: 'mandelbrot', type: 'experiment', title: 'Mandelbrot', description: LOREM_IPSUM },
