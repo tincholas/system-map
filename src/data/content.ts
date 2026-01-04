@@ -1,0 +1,110 @@
+import { Node } from '../types/types';
+
+const LOREM_IPSUM = "Description pending.";
+
+export const contentTree: Node = {
+    id: 'root',
+    type: 'category',
+    title: 'Martin Nanni',
+    description: `Portfolio & Mind Map`,
+    children: [
+        {
+            id: 'games',
+            type: 'category',
+            title: 'Games',
+            description: 'Interactive Play',
+            children: [
+                {
+                    id: 'board-games',
+                    type: 'category',
+                    title: 'Board Games',
+                    children: [
+                        { id: 'dungeon-tavern', type: 'project', title: 'Dungeon Tavern', description: LOREM_IPSUM },
+                        { id: 'blade-master', type: 'project', title: 'Blade Master', description: LOREM_IPSUM },
+                        { id: 'conspiracy-theory', type: 'project', title: 'Conspiracy Theory', description: LOREM_IPSUM },
+                        { id: 'voc', type: 'project', title: 'VOC', description: LOREM_IPSUM },
+                        { id: 'aqueduct', type: 'project', title: 'Aqueduct', description: LOREM_IPSUM },
+                        { id: 'mapitos', type: 'project', title: 'Mapitos', description: LOREM_IPSUM },
+                        { id: 'orc-dice', type: 'project', title: 'Orc Dice', description: LOREM_IPSUM },
+                        { id: 'dungeon-explorer', type: 'project', title: 'Dungeon Explorer', description: LOREM_IPSUM },
+                        { id: 'space-cowboy', type: 'project', title: 'Space Cowboy', description: LOREM_IPSUM },
+                    ]
+                },
+                {
+                    id: 'video-games',
+                    type: 'category',
+                    title: 'Video Games',
+                    children: [
+                        { id: 'spin', type: 'project', title: 'Spin', description: LOREM_IPSUM },
+                        { id: 'jurassic', type: 'project', title: 'Jurassic', description: LOREM_IPSUM },
+                        { id: 'wurds', type: 'project', title: 'Wurds', description: LOREM_IPSUM },
+                        { id: 'alchemy', type: 'project', title: 'Alchemy', description: LOREM_IPSUM },
+                        { id: 'tavernator', type: 'project', title: 'Tavernator', description: LOREM_IPSUM },
+                    ]
+                },
+                {
+                    id: 'design-philosophy',
+                    type: 'category',
+                    title: 'Design Philosophy',
+                    children: [
+                        { id: 'system-theme', type: 'experiment', title: 'System>Theme', description: LOREM_IPSUM },
+                        { id: 'incentives', type: 'experiment', title: 'Incentives Create Behaviors', description: LOREM_IPSUM },
+                        { id: 'resource-balancing', type: 'experiment', title: 'Resource and Balancing', description: LOREM_IPSUM },
+                        {
+                            id: 'fun-driver',
+                            type: 'experiment',
+                            title: 'Fun is the driver',
+                            children: [
+                                { id: 'skill-vs-luck', type: 'experiment', title: 'Skill vs Luck', description: LOREM_IPSUM },
+                                { id: 'favor-laggard', type: 'experiment', title: 'Favor the laggard', description: LOREM_IPSUM },
+                                { id: 'choice-variety', type: 'experiment', title: 'Choice variety creates depth', description: LOREM_IPSUM },
+                            ]
+                        },
+                    ]
+                }
+            ]
+        },
+        {
+            id: 'experiments',
+            type: 'category',
+            title: 'Experiments',
+            children: [
+                { id: 'city-scape', type: 'experiment', title: 'City Scape', description: LOREM_IPSUM },
+                { id: 'microbial-growth', type: 'experiment', title: 'Microbial Growth', description: LOREM_IPSUM },
+                { id: 'music-visualizer', type: 'experiment', title: 'Music Visualizer', description: LOREM_IPSUM },
+                { id: 'net', type: 'experiment', title: 'Net', description: LOREM_IPSUM },
+                { id: 'touch-dots', type: 'experiment', title: 'Touch Dots', description: LOREM_IPSUM },
+                { id: 'constellations', type: 'experiment', title: 'Constellations', description: LOREM_IPSUM },
+                { id: 'cube', type: 'experiment', title: 'Cube', description: LOREM_IPSUM },
+                {
+                    id: 'not-webgl',
+                    type: 'category',
+                    title: 'Not WebGL',
+                    children: [
+                        { id: 'still-not-webgl', type: 'experiment', title: 'Still Not WebGL', description: LOREM_IPSUM },
+                    ]
+                },
+                { id: 'sketch', type: 'experiment', title: 'Sketch', description: LOREM_IPSUM },
+                { id: 'color-particles', type: 'experiment', title: 'Color Particles', description: LOREM_IPSUM },
+                { id: 'mandelbrot', type: 'experiment', title: 'Mandelbrot', description: LOREM_IPSUM },
+                { id: 'metaballs', type: 'experiment', title: 'Metaballs', description: LOREM_IPSUM },
+                { id: 'screensaver', type: 'experiment', title: 'Screensaver', description: LOREM_IPSUM },
+                { id: 'shadows', type: 'experiment', title: 'Shadows', description: LOREM_IPSUM },
+            ]
+        },
+        {
+            id: 'thoughts',
+            type: 'category',
+            title: 'Thoughts',
+            description: 'Essays & Musings',
+            children: []
+        },
+        {
+            id: 'about',
+            type: 'category',
+            title: 'About',
+            description: 'Background & Contact',
+            children: []
+        }
+    ],
+};
