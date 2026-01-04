@@ -5,6 +5,8 @@ import { motion } from 'framer-motion';
 import { useSpring as useSpringThree, animated as animatedThree, to } from '@react-spring/three';
 import { useSpring as useSpringWeb, animated as animatedWeb } from '@react-spring/web';
 import { useRef, useState, useEffect } from 'react';
+import ReactMarkdown from 'react-markdown';
+import { Carousel } from './Carousel';
 import { LayoutNode } from '../types/types';
 
 // Collapsed and expanded sizes for projects
@@ -35,6 +37,7 @@ export const NodeCard = ({ node, isActive, onClick, animationDelay = 0 }: NodeCa
 
   // Track if this node has completed its enter animation
   const isFirstRender = useRef(true);
+  const isDraggingRef = useRef({ x: 0, y: 0 });
   const [hasEnteredView, setHasEnteredView] = useState(false);
 
   useEffect(() => {
@@ -159,9 +162,22 @@ export const NodeCard = ({ node, isActive, onClick, animationDelay = 0 }: NodeCa
                   width: webSpring.width.to((w: number) => `${w}px`),
                   height: webSpring.height.to((h: number) => `${h}px`),
                 }}
+                onPointerDown={(e) => {
+                  // Track start position to detect drags
+                  isDraggingRef.current = { x: e.clientX, y: e.clientY };
+                }}
                 onClick={(e) => {
                   e.stopPropagation();
-                  onClick(node.id);
+
+                  // Calculate distance moved
+                  const dx = e.clientX - isDraggingRef.current.x;
+                  const dy = e.clientY - isDraggingRef.current.y;
+                  const distance = Math.hypot(dx, dy);
+
+                  // Only trigger click if movement was minimal (not a drag)
+                  if (distance < 10) {
+                    onClick(node.id);
+                  }
                 }}
               >
                 {/* Clipping wrapper */}
@@ -198,9 +214,12 @@ export const NodeCard = ({ node, isActive, onClick, animationDelay = 0 }: NodeCa
                       {/* Expanded content - only visible when container grows */}
                       {canExpand && (
                         <div className="mt-4 pt-4 border-t border-cyan-500/20">
-                          <p className="text-neutral-300 text-sm">
-                            {content || "Detailed project content will appear here. Click to expand and see more information about this project."}
-                          </p>
+                          {node.gallery && node.gallery.length > 0 && (
+                            <Carousel items={node.gallery} />
+                          )}
+                          <div className="prose prose-invert prose-sm max-w-none prose-p:text-neutral-300 prose-headings:text-cyan-400 prose-a:text-cyan-500 max-h-[450px] overflow-y-auto pr-2">
+                            <ReactMarkdown>{content || "Detailed project content will appear here. Click to expand and see more information about this project."}</ReactMarkdown>
+                          </div>
                         </div>
                       )}
                     </div>

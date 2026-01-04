@@ -48,6 +48,19 @@ const CameraController = ({ layoutMap, activeId }: CameraControllerProps) => {
         config: { mass: 1, tension: 100, friction: 26 }
     }));
 
+    // Stop animation on manual interaction
+    useEffect(() => {
+        const controls = controlsRef.current;
+        if (!controls) return;
+
+        const onStart = () => {
+            api.stop();
+        };
+
+        controls.addEventListener('start', onStart);
+        return () => controls.removeEventListener('start', onStart);
+    }, [api]);
+
     useEffect(() => {
         if (activeId && layoutMap.has(activeId)) {
             const node = layoutMap.get(activeId);

@@ -19,7 +19,29 @@ export const contentTree: Node = {
                     type: 'category',
                     title: 'Board Games',
                     children: [
-                        { id: 'dungeon-tavern', type: 'project', title: 'Dungeon Tavern', description: '' },
+                        {
+                            id: 'dungeon-tavern',
+                            type: 'project',
+                            title: 'Dungeon Tavern',
+                            description: 'A co-op management game.',
+                            content: `
+**Dungeon Tavern** is a cooperative resource management game where players run a tavern for adventurers effectively.
+
+### Key Features
+- **Co-op Gameplay**: Work together to serve customers.
+- **Resource Management**: Balance food, drink, and seating.
+- **Upgrades**: Improve your tavern over time.
+
+### Tech Stack
+* Built with Unity
+* C# scripting
+                            `,
+                            gallery: [
+                                'https://placehold.co/800x400/111827/06b6d4?text=Gameplay+Screenshot+1',
+                                'https://placehold.co/800x400/0f172a/06b6d4?text=Gameplay+Screenshot+2',
+                                'https://placehold.co/800x400/312e81/06b6d4?text=Menu+UI'
+                            ]
+                        },
                         { id: 'blade-master', type: 'project', title: 'Blade Master', description: LOREM_IPSUM },
                         { id: 'conspiracy-theory', type: 'project', title: 'Conspiracy Theory', description: LOREM_IPSUM },
                         { id: 'voc', type: 'project', title: 'VOC', description: LOREM_IPSUM },
@@ -57,12 +79,7 @@ export const contentTree: Node = {
                 { id: 'touch-dots', type: 'experiment', title: 'Touch Dots', description: LOREM_IPSUM },
                 { id: 'constellations', type: 'experiment', title: 'Constellations', description: LOREM_IPSUM },
                 { id: 'cube', type: 'experiment', title: 'Cube', description: LOREM_IPSUM },
-                {
-                    id: 'not-webgl',
-                    type: 'category',
-                    title: 'Not WebGL',
-
-                },
+                { id: 'not-webgl', type: 'category', title: 'Not WebGL' },
                 { id: 'still-not-webgl', type: 'experiment', title: 'Still Not WebGL', description: LOREM_IPSUM },
                 { id: 'sketch', type: 'experiment', title: 'Sketch', description: LOREM_IPSUM },
                 { id: 'color-particles', type: 'experiment', title: 'Color Particles', description: LOREM_IPSUM },
