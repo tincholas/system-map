@@ -18,10 +18,14 @@ export async function getSystemMapData(): Promise<Node> {
             parentId: data.parent || undefined,
             title: data.title,
             type: data.type,
+            label: data.label,
             status: data.status,
             description: data.description,
             gallery: data.gallery as string[], // Cast to string array
-            experimentUrl: data.experimentUrl || undefined,
+            iframeConfig: data.iframeConfig ? {
+                url: data.iframeConfig.url,
+                orientation: data.iframeConfig.orientation
+            } : undefined,
             content: JSON.stringify(data.content),
             children: []
         };

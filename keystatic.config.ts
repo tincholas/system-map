@@ -14,16 +14,17 @@ export default config({
                 title: fields.slug({ name: { label: 'Title' } }),
                 type: fields.select({
                     label: 'Node Type',
-                    description: 'Structural role of this node',
+                    description: 'Categories are structural. Articles contain content.',
                     options: [
-                        { label: 'Category (Folder)', value: 'category' },
-                        { label: 'Project', value: 'project' },
-                        { label: 'Experiment', value: 'experiment' },
-                        { label: 'Experiment Preview (Virtual)', value: 'experiment-preview' },
-                        { label: 'Mobile Preview (Virtual 9:16)', value: 'mobile-preview' },
-                        { label: 'Article (Thought)', value: 'article' },
+                        { label: 'Category', value: 'category' },
+                        { label: 'Article', value: 'article' },
                     ],
-                    defaultValue: 'project',
+                    defaultValue: 'article',
+                }),
+                label: fields.text({
+                    label: 'Label',
+                    description: 'Displayed tag (e.g. Project, Experiment, App)',
+                    defaultValue: 'Project',
                 }),
                 status: fields.select({
                     label: 'Status',
@@ -31,18 +32,32 @@ export default config({
                         { label: 'Concept', value: 'concept' },
                         { label: 'Prototype', value: 'prototype' },
                         { label: 'Production', value: 'production' },
+                        { label: 'Archived', value: 'archived' },
                     ],
                     defaultValue: 'concept',
+                }),
+                description: fields.text({
+                    label: 'Short Description',
+                    multiline: true,
+                }),
+                iframeConfig: fields.object({
+                    url: fields.url({
+                        label: 'Iframe URL',
+                        description: 'Optional. If set, creates a sidecar preview.'
+                    }),
+                    orientation: fields.select({
+                        label: 'Orientation',
+                        options: [
+                            { label: 'Desktop (800x600)', value: 'desktop' },
+                            { label: 'Mobile (450x800)', value: 'mobile' },
+                        ],
+                        defaultValue: 'desktop',
+                    }),
                 }),
                 parent: fields.relationship({
                     label: 'Parent Node',
                     description: 'The category or project this belongs to (Leave empty for Root)',
                     collection: 'nodes',
-                }),
-                description: fields.text({
-                    label: 'Description',
-                    description: 'Short summary visible on the card',
-                    multiline: true
                 }),
                 gallery: fields.array(
                     fields.url({ label: 'Image URL' }),
@@ -51,10 +66,6 @@ export default config({
                         itemLabel: props => props.value || 'Image URL'
                     }
                 ),
-                experimentUrl: fields.url({
-                    label: 'Experiment / Embed URL',
-                    description: 'For experiments or previews only'
-                }),
                 content: fields.document({
                     label: 'Content',
                     formatting: true,

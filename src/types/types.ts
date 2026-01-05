@@ -1,17 +1,22 @@
-export type NodeType = 'category' | 'project' | 'experiment' | 'experiment-preview' | 'mobile-preview' | 'mobile-preview-frame';
+export type NodeType = 'category' | 'article' | 'virtual-frame';
 export type NodeStatus = 'prototype' | 'production' | 'concept';
 
 export interface Node {
   id: string;
-  parentId?: string; // If undefined, it's a root node
-  type: NodeType;
   title: string;
-  status?: NodeStatus;
-  description?: string; // Short summary
-  content?: string;     // Full Markdown content
-  gallery?: string[];   // Array of image URLs
-  mediaUrl?: string;
-  experimentUrl?: string; // URL for embedded experiment content
+  type: NodeType;
+  label?: string; // e.g. "Project", "Experiment", "Thought"
+  status?: 'concept' | 'prototype' | 'production' | 'archived';
+  description?: string;
+  content?: string; // Markdown content
+
+  // Iframe Configuration (Replacing experimentUrl)
+  iframeConfig?: {
+    url: string;
+    orientation: 'desktop' | 'mobile'; // desktop = 800x600, mobile = 450x800
+  };
+
+  gallery?: string[]; // Array of image URLs
   children?: Node[];
 }
 

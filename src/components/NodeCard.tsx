@@ -54,7 +54,7 @@ export const NodeCard = ({ node, isActive, onClick, animationDelay = 0, transiti
   }, [animationDelay]);
 
   // Can this node expand in place?
-  const canExpand = type === 'project' || type === 'experiment' || type === 'mobile-preview';
+  const canExpand = type === 'article'; // Only articles expand
 
   // Spring for Three.js objects (position)
   const threeSpring = useSpringThree({
@@ -71,9 +71,9 @@ export const NodeCard = ({ node, isActive, onClick, animationDelay = 0, transiti
   });
 
 
-  // Special Rendering for Experiment Previews (Virtual Child Nodes)
-  if (type === 'experiment-preview' || type === 'mobile-preview-frame') {
-    const isMobile = type === 'mobile-preview-frame';
+  // Special Rendering for Virtual Frames (Sidecar)
+  if (type === 'virtual-frame' && node.iframeConfig) {
+    const isMobile = node.iframeConfig.orientation === 'mobile';
     const width = isMobile ? 450 : 800;
     const height = isMobile ? 800 : 600;
 
@@ -110,23 +110,23 @@ export const NodeCard = ({ node, isActive, onClick, animationDelay = 0, transiti
             style={{ width: `${width}px`, height: `${height}px` }}
           >
             <div className="w-full h-8 bg-neutral-900 border-b border-cyan-500/30 flex items-center px-4">
-              <span className="text-xs font-mono text-cyan-400 uppercase">{title} {isMobile ? 'MOBILE' : 'PREVIEW'}</span>
-              {node.experimentUrl && (
-                <a href={node.experimentUrl} target="_blank" rel="noreferrer" className="ml-auto text-[10px] text-neutral-500 hover:text-white">
+              <span className="text-xs font-mono text-cyan-400 uppercase">{title} PREVIEW</span>
+              {node.iframeConfig.url && (
+                <a href={node.iframeConfig.url} target="_blank" rel="noreferrer" className="ml-auto text-[10px] text-neutral-500 hover:text-white">
                   OPEN IN NEW TAB ↗
                 </a>
               )}
             </div>
-            {node.experimentUrl && (
+            {node.iframeConfig.url && (
               <iframe
-                src={node.experimentUrl}
+                src={node.iframeConfig.url}
                 className="w-full h-full bg-white"
                 title={`${title} Preview`}
                 allow="accelerometer; camera; encrypted-media; gyroscope; microphone; web-share"
                 allowFullScreen
               />
             )}
-            {!node.experimentUrl && (
+            {!node.iframeConfig.url && (
               <div className="w-full h-full flex items-center justify-center text-neutral-500">
                 NO URL PROVIDED
               </div>
@@ -231,7 +231,7 @@ export const NodeCard = ({ node, isActive, onClick, animationDelay = 0, transiti
                     className="p-4 flex flex-col"
                   >
                     <div className="flex justify-between items-start shrink-0">
-                      <span className="text-xs font-mono text-cyan-500 uppercase tracking-widest">{type}</span>
+                      <span className="text-xs font-mono text-cyan-500 uppercase tracking-widest">{node.label || type}</span>
                       {status && (
                         <span className={`text-[10px] px-1 py-0.5 border rounded ${status === 'production' ? 'border-green-500 text-green-500' :
                           status === 'prototype' ? 'border-yellow-500 text-yellow-500' :

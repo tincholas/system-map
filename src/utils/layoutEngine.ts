@@ -36,53 +36,41 @@ function enrichWithHeight(node: Node, expandedIds: Set<string>): NodeWithDimensi
     const isExpanded = expandedIds.has(node.id);
 
     // Node Types
-    const isProject = node.type === 'project';
-    const isExperiment = node.type === 'experiment';
-    const isMobilePreview = node.type === 'mobile-preview';
-    const isExperimentPreview = node.type === 'experiment-preview';
-    const isMobilePreviewFrame = node.type === 'mobile-preview-frame';
+    const isArticle = node.type === 'article';
+    const isVirtualFrame = node.type === 'virtual-frame';
 
     let width = CONFIG.NODE_WIDTH;
     let height = CONFIG.NODE_HEIGHT;
 
-    if (isExpanded && isProject) {
+    if (isExpanded && isArticle) {
         width = CONFIG.EXPANDED_WIDTH;
         height = CONFIG.EXPANDED_HEIGHT;
-    } else if (isExpanded && isExperiment) {
-        width = CONFIG.EXPANDED_WIDTH;
-        height = CONFIG.EXPANDED_HEIGHT;
-    } else if (isExpanded && isMobilePreview) {
-        width = CONFIG.EXPANDED_WIDTH;
-        height = CONFIG.EXPANDED_HEIGHT;
-    } else if (isExperimentPreview) {
-        width = CONFIG.EXPANDED_WIDTH;
-        height = CONFIG.EXPANDED_HEIGHT;
-    } else if (isMobilePreviewFrame) {
-        width = CONFIG.MOBILE_WIDTH;
-        height = CONFIG.MOBILE_HEIGHT;
+    } else if (isVirtualFrame) {
+        // Virtual frames are sized based on their config (passed via data or inferred)
+        // For now, we need to pass this data down.
+        // Actually, the virtual node created below will carry the size info needed for rendering,
+        // but here we set physical layout dimensions.
+        if (node.iframeConfig?.orientation === 'mobile') {
+            width = CONFIG.MOBILE_WIDTH;
+            height = CONFIG.MOBILE_HEIGHT;
+        } else {
+            width = CONFIG.EXPANDED_WIDTH;
+            height = CONFIG.EXPANDED_HEIGHT;
+        }
     }
 
-    // Logic to inject virtual child for expanded experiments and mobile previews
+    // Logic to inject virtual child for expanded articles with iframes
     let processedChildren = node.children || [];
 
-    if (isExpanded && node.experimentUrl) {
-        if (isExperiment) {
-            const previewNode: Node = {
-                id: `${node.id}-preview`,
-                type: 'experiment-preview',
-                title: node.title,
-                experimentUrl: node.experimentUrl
-            };
-            processedChildren = [...processedChildren, previewNode];
-        } else if (isMobilePreview) {
-            const previewNode: Node = {
-                id: `${node.id}-preview`,
-                type: 'mobile-preview-frame',
-                title: node.title,
-                experimentUrl: node.experimentUrl
-            };
-            processedChildren = [...processedChildren, previewNode];
-        }
+    if (isExpanded && node.iframeConfig && node.iframeConfig.url) {
+        const previewNode: Node = {
+            id: `${node.id}-preview`,
+            type: 'virtual-frame',
+            title: node.title,
+            iframeConfig: node.iframeConfig,
+            label: 'Preview'
+        };
+        processedChildren = [...processedChildren, previewNode];
     }
 
     // Check implies we treat the injected child as real for layout purposes
