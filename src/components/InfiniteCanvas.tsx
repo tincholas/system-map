@@ -9,9 +9,9 @@ import { ConnectionLine } from './ConnectionLine';
 
 import { useRef, useEffect } from 'react';
 import { useThree, useFrame } from '@react-three/fiber';
-import { MapControls } from '@react-three/drei';
+import { MapControls, Grid } from '@react-three/drei';
 import { useSpring, useTransition, animated } from '@react-spring/three';
-import { findNode, getDescendantIds } from '../utils/treeUtils';
+import { findNode, getDescendantIds, getPathToNode } from '../utils/treeUtils';
 
 interface CameraControllerProps {
     layoutMap: Map<string, any>;
@@ -22,23 +22,8 @@ interface CameraControllerProps {
 const CameraController = ({ layoutMap, activeId }: CameraControllerProps) => {
     const { camera, viewport, size } = useThree();
     const controlsRef = useRef<any>(null);
-    const initializedRef = useRef(false);
-
-    // Initial positioning: Left-align the root node (0,0) with 10% margin
-    useEffect(() => {
-        if (!initializedRef.current && controlsRef.current) {
-            const targetX = 0.4 * (size.width / 5);
-
-            // Set Camera Position & Target immediately
-            camera.position.x = targetX;
-            camera.position.y = 0;
-            controlsRef.current.target.set(targetX, 0, 0);
-
-            camera.updateProjectionMatrix();
-            controlsRef.current.update();
-            initializedRef.current = true;
-        }
-    }, [camera, size, controlsRef]);
+    // Track if we have performed the initial "Teleport" to the starting node
+    const hasTeleportedRef = useRef(false);
 
     // Dynamic Panning: Animate to new Active Node
     const [spring, api] = useSpring(() => ({
@@ -62,54 +47,72 @@ const CameraController = ({ layoutMap, activeId }: CameraControllerProps) => {
     }, [api]);
 
     useEffect(() => {
-        if (activeId && layoutMap.has(activeId)) {
-            const node = layoutMap.get(activeId);
+        // We only move if we have a valid target (either Active ID or valid Root layout)
+        // If activeId is null, we look for 'root' or whatever logic, BUT
+        // the InfiniteCanvas logic sets activeId to 'root' default if layoutMap is built.
+        // Let's assume layoutMap always has the target if it exists.
+
+        const targetId = activeId || 'root'; // Fallback to root if null
+
+        if (layoutMap.has(targetId)) {
+            const node = layoutMap.get(targetId);
 
             // Calculate Target Zoom:
-            // Goal: Fit the node's branch height vertically AND the node's width horizontally.
-            // 1. Height fit:
-            // size.height / zoom = node.branchHeight * 1.5 (padding)
             const zoomHeight = size.height / (node.branchHeight * 1.5);
-
-            // 2. Width fit:
-            // size.width / zoom = node.width * 1.5 (padding)
             const zoomWidth = size.width / (node.width * 1.5);
-
-            // Take the smaller zoom to ensure BOTH fit
-            // And CLAMP strictly to prevent "wild" variability
             let targetZoom = Math.min(zoomHeight, zoomWidth);
             targetZoom = Math.max(0.4, Math.min(2.5, targetZoom));
 
-            // Re-calculate target camera X based on the NEW zoom level
-            // targetViewportWidth = size.width / targetZoom
             const targetViewportWidth = size.width / targetZoom;
-
-            // Now apply the 10% (0.4 factor from center) margin logic with the new width
             const targetX = node.x + (0.4 * targetViewportWidth);
-            const targetY = -node.y; // Center node vertically
+            const targetY = -node.y;
 
-            api.start({
-                from: {
+            if (!hasTeleportedRef.current) {
+                // --- TELEPORT (Instant) ---
+                //console.log(`[Camera] Teleporting to ${targetId} at (${targetX}, ${targetY})`);
+
+                // Update Spring immediately so it doesn't fight back
+                api.set({ targetX, targetY, targetZoom });
+
+                // Update Camera & Controls immediately
+                if (controlsRef.current) {
+                    camera.position.x = targetX;
+                    camera.position.y = targetY;
+                    camera.zoom = targetZoom;
+                    controlsRef.current.target.set(targetX, targetY, 0);
+                    camera.updateProjectionMatrix();
+                    controlsRef.current.update();
+                }
+
+                hasTeleportedRef.current = true;
+            } else {
+                // --- ANIMATE (Smooth) ---
+
+                // CRITICAL FIX: Sync Spring to CURRENT camera reality first.
+                // This prevents "jumping" to the last known Spring state if the user manually dragged.
+                api.set({
                     targetX: camera.position.x,
                     targetY: camera.position.y,
                     targetZoom: camera.zoom
-                },
-                targetX,
-                targetY,
-                targetZoom,
-                onChange: ({ value }) => {
-                    if (controlsRef.current) {
-                        camera.position.x = value.targetX;
-                        camera.position.y = value.targetY;
-                        camera.zoom = value.targetZoom;
+                });
 
-                        controlsRef.current.target.set(value.targetX, value.targetY, 0);
-
-                        camera.updateProjectionMatrix();
-                        controlsRef.current.update();
+                //console.log(`[Camera] Animating to ${targetId}`);
+                api.start({
+                    targetX,
+                    targetY,
+                    targetZoom,
+                    onChange: ({ value }) => {
+                        if (controlsRef.current) {
+                            camera.position.x = value.targetX;
+                            camera.position.y = value.targetY;
+                            camera.zoom = value.targetZoom;
+                            controlsRef.current.target.set(value.targetX, value.targetY, 0);
+                            camera.updateProjectionMatrix();
+                            controlsRef.current.update();
+                        }
                     }
-                }
-            });
+                });
+            }
         }
     }, [activeId, layoutMap, size, api, camera]);
 
@@ -131,13 +134,42 @@ interface InfiniteCanvasProps {
     initialData?: Node;
 }
 
+import { useSearchParams, useRouter, usePathname } from 'next/navigation';
+
 export const InfiniteCanvas = ({ initialData }: InfiniteCanvasProps) => {
     // Use passed data, or fallback to hardcoded contentTree (for development/migration)
-    const rootData = useMemo(() => initialData || contentTree, [initialData]);
+    // We use useState with an initializer to ignore prop updates. 
+    // Once loaded, the Client Component owns the data state.
+    const [rootData] = useState(() => initialData || contentTree);
 
-    // Initial state setup
+    const searchParams = useSearchParams();
+    const router = useRouter();
+    const pathname = usePathname();
+
     const [expandedIds, setExpandedIds] = useState<Set<string>>(new Set([]));
     const [activeId, setActiveId] = useState<string | null>(null);
+
+    // Deep Linking: Hydrate state from URL (ONCE on mount)
+    // We use a ref to ensure we grab the initial param value at mount time
+    // without needing it in the dependency array (which would trigger updates).
+    const initialParamRef = useRef(searchParams.get('node'));
+
+    useEffect(() => {
+        const nodeParam = initialParamRef.current; // Read from ref, stable.
+
+        if (nodeParam) {
+            const targetNode = findNode(rootData, nodeParam);
+            if (targetNode) {
+                const path = getPathToNode(rootData, nodeParam);
+                if (path) {
+                    const newExpanded = new Set(path);
+                    setExpandedIds(newExpanded);
+                    setActiveId(nodeParam);
+                }
+            }
+        }
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, []); // STRICTLY run once on mount. Ignore rootData updates to prevent re-hydration loops.
 
     const toggleNode = (id: string) => {
         const newSet = new Set(expandedIds);
@@ -146,27 +178,33 @@ export const InfiniteCanvas = ({ initialData }: InfiniteCanvasProps) => {
         if (newSet.has(id)) {
             // Collapsing logic ...
             newSet.delete(id);
-            const node = findNode(rootData, id); // Use rootData instead of contentTree
+            const node = findNode(rootData, id);
             if (node) {
                 const descendants = getDescendantIds(node);
                 descendants.forEach(dId => newSet.delete(dId));
 
-                // Parent focus logic
                 if (node.parentId) {
                     nextActiveId = node.parentId;
                 } else {
-                    // Collapsing root? Keep root active
                     nextActiveId = node.id;
                 }
             }
         } else {
             // Expanding logic ...
-            // Focus on the node we just clicked to center it
             newSet.add(id);
         }
 
         setExpandedIds(newSet);
         setActiveId(nextActiveId);
+
+        // Sync URL
+        const params = new URLSearchParams(searchParams);
+        if (nextActiveId && nextActiveId !== 'root') {
+            params.set('node', nextActiveId);
+        } else {
+            params.delete('node');
+        }
+        router.replace(`${pathname}?${params.toString()}`, { scroll: false });
     };
 
     // Recalculate layout whenever expansion state OR data changes
@@ -187,9 +225,24 @@ export const InfiniteCanvas = ({ initialData }: InfiniteCanvasProps) => {
     });
 
     return (
-        <div className="w-full h-screen bg-[#050505] text-white overflow-hidden">
+        <div className="w-full h-screen text-white overflow-hidden relative" style={{ backgroundColor: '#10355E' }}>
             <Canvas orthographic camera={{ zoom: 5, position: [0, 0, 100], near: -10000, far: 10000 }}>
-                <color attach="background" args={['#050505']} />
+
+                {/* Blueprint Grid */}
+                <group position={[0, 0, -10]}>
+                    <Grid
+                        position={[0, 0, 0]}
+                        rotation={[Math.PI / 2, 0, 0]}
+                        args={[20000, 20000]}
+                        cellSize={100}
+                        cellThickness={0.6}
+                        cellColor="#2B5C96" // Brighter / More noticeable
+                        sectionSize={500}
+                        sectionThickness={1.2}
+                        sectionColor="#3A6EA5" // Darker / Less noticeable
+                        fadeDistance={25000}
+                    />
+                </group>
 
                 <ambientLight intensity={0.5} />
                 <pointLight position={[10, 10, 10]} />
@@ -234,9 +287,18 @@ export const InfiniteCanvas = ({ initialData }: InfiniteCanvasProps) => {
                 <CameraController layoutMap={layoutMap} activeId={activeId} />
             </Canvas>
 
-            <div className="absolute bottom-4 left-4 pointer-events-none">
-                <h1 className="text-sm font-mono text-cyan-500/50">SYSTEM MAP v0.1</h1>
+            <div className="absolute bottom-4 left-4 pointer-events-none z-10">
+                <h1 className="text-sm text-[#5C94D1]/70 font-[family-name:var(--font-cad)]">SYSTEM MAP v0.1</h1>
             </div>
+
+            {/* Vignette Overlay */}
+            <div
+                className="absolute inset-0 pointer-events-none z-20"
+                style={{
+                    background: 'radial-gradient(circle at center, transparent 15%, rgba(5, 20, 40, 0.6) 60%, rgba(2, 10, 20, 0.95) 100%)',
+                    boxShadow: 'inset 0 0 200px rgba(0,0,0,0.9)'
+                }}
+            />
         </div>
     );
 };

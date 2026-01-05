@@ -5,18 +5,15 @@ const CONFIG = {
     NODE_HEIGHT: 150,
     EXPANDED_WIDTH: 800,
     EXPANDED_HEIGHT: 600,
+    MOBILE_WIDTH: 450,
+    MOBILE_HEIGHT: 800,
     HORIZONTAL_GAP: 100,
     VERTICAL_GAP: 50,
 };
 
 /**
  * Calculates layout for a tree of nodes.
- * 
- * COORDINATE SYSTEM:
- * - x: LEFT EDGE of the node
- * - y: VERTICAL CENTER of the node
- * 
- * This ensures expanded nodes grow RIGHTWARD, keeping their left edge fixed.
+ * ...
  */
 export function calculateLayout(
     root: Node,
@@ -37,11 +34,13 @@ interface NodeWithDimensions extends Omit<Node, 'children'> {
 
 function enrichWithHeight(node: Node, expandedIds: Set<string>): NodeWithDimensions {
     const isExpanded = expandedIds.has(node.id);
-    // hasChildren logic moved below
 
+    // Node Types
     const isProject = node.type === 'project';
     const isExperiment = node.type === 'experiment';
-    const isPreview = node.type === 'experiment-preview';
+    const isMobilePreview = node.type === 'mobile-preview';
+    const isExperimentPreview = node.type === 'experiment-preview';
+    const isMobilePreviewFrame = node.type === 'mobile-preview-frame';
 
     let width = CONFIG.NODE_WIDTH;
     let height = CONFIG.NODE_HEIGHT;
@@ -49,32 +48,47 @@ function enrichWithHeight(node: Node, expandedIds: Set<string>): NodeWithDimensi
     if (isExpanded && isProject) {
         width = CONFIG.EXPANDED_WIDTH;
         height = CONFIG.EXPANDED_HEIGHT;
-    } else if (isPreview) {
-        width = CONFIG.EXPANDED_WIDTH; // Preview uses same size as expanded project
+    } else if (isExpanded && isExperiment) {
+        width = CONFIG.EXPANDED_WIDTH;
         height = CONFIG.EXPANDED_HEIGHT;
+    } else if (isExpanded && isMobilePreview) {
+        width = CONFIG.EXPANDED_WIDTH;
+        height = CONFIG.EXPANDED_HEIGHT;
+    } else if (isExperimentPreview) {
+        width = CONFIG.EXPANDED_WIDTH;
+        height = CONFIG.EXPANDED_HEIGHT;
+    } else if (isMobilePreviewFrame) {
+        width = CONFIG.MOBILE_WIDTH;
+        height = CONFIG.MOBILE_HEIGHT;
     }
 
-    // Logic to inject virtual child for expanded experiments
+    // Logic to inject virtual child for expanded experiments and mobile previews
     let processedChildren = node.children || [];
-    if (isExpanded && isExperiment && node.experimentUrl) {
-        const previewNode: Node = {
-            id: `${node.id}-preview`,
-            type: 'experiment-preview',
-            title: node.title, // Pass title for header
-            experimentUrl: node.experimentUrl
-        };
-        // If children exist, prepend or append? 
-        // Experiments usually are leaves, so they have no children. 
-        // If they did, preview might go first or last. Let's append.
-        processedChildren = [...processedChildren, previewNode];
+
+    if (isExpanded && node.experimentUrl) {
+        if (isExperiment) {
+            const previewNode: Node = {
+                id: `${node.id}-preview`,
+                type: 'experiment-preview',
+                title: node.title,
+                experimentUrl: node.experimentUrl
+            };
+            processedChildren = [...processedChildren, previewNode];
+        } else if (isMobilePreview) {
+            const previewNode: Node = {
+                id: `${node.id}-preview`,
+                type: 'mobile-preview-frame',
+                title: node.title,
+                experimentUrl: node.experimentUrl
+            };
+            processedChildren = [...processedChildren, previewNode];
+        }
     }
 
     // Check implies we treat the injected child as real for layout purposes
     const hasChildren = processedChildren.length > 0;
 
     if (!isExpanded || !hasChildren) {
-        // ... (rest is similar but needs to use processedChildren if we want to handle non-expanded cases correctly? 
-        // No, if !isExpanded, we don't inject. So processedChildren is empty/original.)
         const { children, ...rest } = node;
         return { ...rest, children: undefined, branchHeight: height, width, height };
     }

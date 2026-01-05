@@ -54,7 +54,7 @@ export const NodeCard = ({ node, isActive, onClick, animationDelay = 0, transiti
   }, [animationDelay]);
 
   // Can this node expand in place?
-  const canExpand = type === 'project' || type === 'experiment';
+  const canExpand = type === 'project' || type === 'experiment' || type === 'mobile-preview';
 
   // Spring for Three.js objects (position)
   const threeSpring = useSpringThree({
@@ -70,8 +70,13 @@ export const NodeCard = ({ node, isActive, onClick, animationDelay = 0, transiti
     config: { mass: 1, tension: 170, friction: 26 }
   });
 
+
   // Special Rendering for Experiment Previews (Virtual Child Nodes)
-  if (type === 'experiment-preview') {
+  if (type === 'experiment-preview' || type === 'mobile-preview-frame') {
+    const isMobile = type === 'mobile-preview-frame';
+    const width = isMobile ? 450 : 800;
+    const height = isMobile ? 800 : 600;
+
     return (
       <animatedThree.group
         // @ts-ignore
@@ -99,13 +104,13 @@ export const NodeCard = ({ node, isActive, onClick, animationDelay = 0, transiti
             transition={{ duration: 0.5, delay: animationDelay }}
             className={`
               pointer-events-auto
-              w-[800px] h-[600px]
               bg-black border border-neutral-800 rounded-lg overflow-hidden shadow-2xl
               flex flex-col relative
             `}
+            style={{ width: `${width}px`, height: `${height}px` }}
           >
             <div className="w-full h-8 bg-neutral-900 border-b border-cyan-500/30 flex items-center px-4">
-              <span className="text-xs font-mono text-cyan-400 uppercase">{title} PREVIEW</span>
+              <span className="text-xs font-mono text-cyan-400 uppercase">{title} {isMobile ? 'MOBILE' : 'PREVIEW'}</span>
               {node.experimentUrl && (
                 <a href={node.experimentUrl} target="_blank" rel="noreferrer" className="ml-auto text-[10px] text-neutral-500 hover:text-white">
                   OPEN IN NEW TAB ↗
@@ -117,6 +122,8 @@ export const NodeCard = ({ node, isActive, onClick, animationDelay = 0, transiti
                 src={node.experimentUrl}
                 className="w-full h-full bg-white"
                 title={`${title} Preview`}
+                allow="accelerometer; camera; encrypted-media; gyroscope; microphone; web-share"
+                allowFullScreen
               />
             )}
             {!node.experimentUrl && (
@@ -241,7 +248,7 @@ export const NodeCard = ({ node, isActive, onClick, animationDelay = 0, transiti
 
                       {/* Expanded content - only visible when container grows */}
                       {canExpand && (
-                        <div className="mt-4 pt-4 border-t border-cyan-500/20">
+                        <div className="mt-4 pt-4 border-t border-cyan-500/20 flex-1 flex flex-col min-h-0">
                           {node.gallery && node.gallery.length > 0 && (
                             <Carousel items={node.gallery} />
                           )}

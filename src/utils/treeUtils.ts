@@ -27,3 +27,21 @@ export function getDescendantIds(node: Node): string[] {
     }
     return ids;
 }
+
+/**
+ * Finds the path of IDs from root to the target node (inclusive)
+ */
+export function getPathToNode(root: Node, targetId: string): string[] | null {
+    if (root.id === targetId) return [root.id];
+
+    if (root.children) {
+        for (const child of root.children) {
+            const path = getPathToNode(child, targetId);
+            if (path) {
+                return [root.id, ...path];
+            }
+        }
+    }
+
+    return null;
+}

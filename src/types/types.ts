@@ -1,4 +1,4 @@
-export type NodeType = 'category' | 'project' | 'experiment' | 'experiment-preview';
+export type NodeType = 'category' | 'project' | 'experiment' | 'experiment-preview' | 'mobile-preview' | 'mobile-preview-frame';
 export type NodeStatus = 'prototype' | 'production' | 'concept';
 
 export interface Node {

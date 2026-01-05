@@ -1,12 +1,13 @@
 import { InfiniteCanvas } from '../components/InfiniteCanvas';
+import { Suspense } from 'react';
 import { getSystemMapData } from '../lib/keystatic';
 
 export default async function Home() {
-  const systemMapData = await getSystemMapData();
+  const data = await getSystemMapData();
 
   return (
-    <main className="w-full h-screen">
-      <InfiniteCanvas initialData={systemMapData} />
-    </main>
+    <Suspense fallback={<div className="w-full h-screen bg-[#10355E]" />}>
+      <InfiniteCanvas initialData={data} />
+    </Suspense>
   );
 }

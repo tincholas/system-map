@@ -20,6 +20,7 @@ export default config({
                         { label: 'Project', value: 'project' },
                         { label: 'Experiment', value: 'experiment' },
                         { label: 'Experiment Preview (Virtual)', value: 'experiment-preview' },
+                        { label: 'Mobile Preview (Virtual 9:16)', value: 'mobile-preview' },
                         { label: 'Article (Thought)', value: 'article' },
                     ],
                     defaultValue: 'project',
