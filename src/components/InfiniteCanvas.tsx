@@ -183,8 +183,10 @@ export const InfiniteCanvas = ({ initialData }: InfiniteCanvasProps) => {
                 const descendants = getDescendantIds(node);
                 descendants.forEach(dId => newSet.delete(dId));
 
-                if (node.parentId) {
-                    nextActiveId = node.parentId;
+                // Resolve parent ID using path since Node doesn't hold parent reference
+                const path = getPathToNode(rootData, id);
+                if (path && path.length > 1) {
+                    nextActiveId = path[path.length - 2];
                 } else {
                     nextActiveId = node.id;
                 }

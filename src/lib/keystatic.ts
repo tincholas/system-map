@@ -14,10 +14,9 @@ export async function getSystemMapData(): Promise<Node> {
         const data = entry.entry;
 
         // Resolve content if it's a function (Keystatic Reader API)
-        let contentData = data.content;
-        if (typeof contentData === 'function') {
-            contentData = await contentData();
-        }
+        const content = typeof data.content === 'function'
+            ? await data.content()
+            : data.content;
 
         return {
             id: slug,
@@ -28,11 +27,11 @@ export async function getSystemMapData(): Promise<Node> {
             status: data.status,
             description: data.description,
             gallery: data.gallery as string[], // Cast to string array
-            iframeConfig: data.iframeConfig ? {
-                url: data.iframeConfig.url,
+            iframeConfig: data.iframeConfig && data.iframeConfig.url ? {
+                url: data.iframeConfig.url as string,
                 orientation: data.iframeConfig.orientation
             } : undefined,
-            content: JSON.stringify(contentData),
+            content: JSON.stringify(content),
             children: []
         };
     }));

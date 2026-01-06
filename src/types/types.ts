@@ -1,12 +1,12 @@
-export type NodeType = 'category' | 'article' | 'virtual-frame';
-export type NodeStatus = '' | 'prototype' | 'production' | 'concept';
+export type NodeType = 'category' | 'article' | 'virtual-frame' | 'project' | 'experiment';
+export type NodeStatus = '' | 'prototype' | 'production' | 'concept' | 'archived';
 
 export interface Node {
   id: string;
   title: string;
   type: NodeType;
   label?: string; // e.g. "Project", "Experiment", "Thought"
-  status?: 'concept' | 'prototype' | 'production' | 'archived';
+  status?: NodeStatus;
   description?: string;
   content?: string; // Markdown content
 

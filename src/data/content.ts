@@ -74,7 +74,7 @@ export const contentTree: Node = {
             children: [
                 {
                     id: '3d folder', type: 'category', title: '3D Experiments', children: [
-                        { id: 'city-scape', type: 'experiment', title: 'City Scape', description: LOREM_IPSUM, experimentUrl: 'https://stonecallstudio.com/JSTests/City_Scape/index.html' },
+                        { id: 'city-scape', type: 'experiment', title: 'City Scape', description: LOREM_IPSUM, iframeConfig: { url: 'https://stonecallstudio.com/JSTests/City_Scape/index.html', orientation: 'desktop' } },
                         { id: 'cube', type: 'experiment', title: 'Cube', description: LOREM_IPSUM },
                         { id: 'not-webgl', type: 'category', title: 'Not WebGL' },
                         { id: 'still-not-webgl', type: 'experiment', title: 'Still Not WebGL', description: LOREM_IPSUM },
@@ -84,7 +84,7 @@ export const contentTree: Node = {
                     id: 'particle-folder', type: 'category', title: 'Particle Experiments', children: [
                         { id: 'touch-dots', type: 'experiment', title: 'Touch Dots', description: LOREM_IPSUM },
 
-                        { id: 'microbial-growth', type: 'experiment', title: 'Microbial Growth', description: LOREM_IPSUM, experimentUrl: 'https://stonecallstudio.com/JSTests/Microbial_Growth/index.html' },
+                        { id: 'microbial-growth', type: 'experiment', title: 'Microbial Growth', description: LOREM_IPSUM, iframeConfig: { url: 'https://stonecallstudio.com/JSTests/Microbial_Growth/index.html', orientation: 'desktop' } },
                         { id: 'constellations', type: 'experiment', title: 'Constellations', description: LOREM_IPSUM },
                         { id: 'sketch', type: 'experiment', title: 'Sketch', description: LOREM_IPSUM },
                         { id: 'color-particles', type: 'experiment', title: 'Color Particles', description: LOREM_IPSUM },

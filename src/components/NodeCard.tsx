@@ -57,7 +57,7 @@ export const NodeCard = ({ node, isActive, onClick, animationDelay = 0, transiti
   }, [animationDelay]);
 
   // Can this node expand in place?
-  const canExpand = type === 'article'; // Only articles expand
+  const canExpand = type === 'article' || type === 'project'; // Articles and projects expand
 
   // Spring for Three.js objects (position)
   const threeSpring = useSpringThree({
@@ -75,7 +75,7 @@ export const NodeCard = ({ node, isActive, onClick, animationDelay = 0, transiti
 
 
   // Special Rendering for Virtual Frames (Sidecar)
-  if (type === 'virtual-frame' && node.iframeConfig) {
+  if ((type === 'virtual-frame' || type === 'experiment') && node.iframeConfig) {
     const isMobile = node.iframeConfig.orientation === 'mobile';
     const width = isMobile ? 450 : 800;
     const height = isMobile ? 800 : 600;
