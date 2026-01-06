@@ -1,6 +1,11 @@
 ---
 title: Not WebGL
-type: category
+type: article
+status: prototype
+iframeConfig:
+  url: https://stonecallstudio.com/JSTests/Not_WebGL/index.html
+  orientation: desktop
 parent: 3d-folder
 gallery: []
 ---
+In this experiment, I tried to replicate old 3d fixed function pipelines to, from a defined set of vertices, apply world, view and projection transformation, calculate where the vertices should appear on screen, and shade all faces. I generated a UV sphere with some sinusoidal noise which created a nice effect, calculated screenspace positions of all faces, calculated the light intensity at each face given the face normal and the light direciton and then painted if all to screen. Needless to say this could have been done much more simply using webGL, but the trill of knowing how things work is very alluring.
