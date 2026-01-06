@@ -1,5 +1,5 @@
 export type NodeType = 'category' | 'article' | 'virtual-frame';
-export type NodeStatus = 'prototype' | 'production' | 'concept';
+export type NodeStatus = '' | 'prototype' | 'production' | 'concept';
 
 export interface Node {
   id: string;

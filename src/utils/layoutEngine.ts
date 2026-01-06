@@ -9,6 +9,7 @@ const CONFIG = {
     MOBILE_HEIGHT: 800,
     HORIZONTAL_GAP: 100,
     VERTICAL_GAP: 50,
+    COLUMN_THRESHOLD: 4, // Split into 2 columns if children count exceeds this
 };
 
 /**
@@ -82,9 +83,25 @@ function enrichWithHeight(node: Node, expandedIds: Set<string>): NodeWithDimensi
     }
 
     const enrichedChildren = processedChildren.map(child => enrichWithHeight(child, expandedIds));
-    const totalChildrenHeight = enrichedChildren.reduce((sum, child) => sum + child.branchHeight, 0);
-    const totalGap = (enrichedChildren.length - 1) * CONFIG.VERTICAL_GAP;
-    const branchHeight = Math.max(height, totalChildrenHeight + totalGap);
+
+    // Calculate effective height based on layout strategy (Single vs Multi Column)
+    let totalChildrenHeight = 0;
+    const useTwoColumns = enrichedChildren.length > CONFIG.COLUMN_THRESHOLD;
+
+    if (useTwoColumns) {
+        const midPoint = Math.ceil(enrichedChildren.length / 2);
+        const col1 = enrichedChildren.slice(0, midPoint);
+        const col2 = enrichedChildren.slice(midPoint);
+
+        const col1Height = col1.reduce((sum, child) => sum + child.branchHeight, 0) + (Math.max(0, col1.length - 1) * CONFIG.VERTICAL_GAP);
+        const col2Height = col2.reduce((sum, child) => sum + child.branchHeight, 0) + (Math.max(0, col2.length - 1) * CONFIG.VERTICAL_GAP);
+
+        totalChildrenHeight = Math.max(col1Height, col2Height);
+    } else {
+        totalChildrenHeight = enrichedChildren.reduce((sum, child) => sum + child.branchHeight, 0) + (Math.max(0, enrichedChildren.length - 1) * CONFIG.VERTICAL_GAP);
+    }
+
+    const branchHeight = Math.max(height, totalChildrenHeight);
 
     const { children: _, ...nodeParams } = node;
     return { ...nodeParams, children: enrichedChildren, branchHeight, width, height };
@@ -115,23 +132,62 @@ function assignCoordinates(
     });
 
     if (isExpanded && node.children && node.children.length > 0) {
-        // Children start to the right of this node
+        // Standard Orthogonal Anchors
         const childrenLeftX = leftX + node.width + CONFIG.HORIZONTAL_GAP;
+        const count = node.children.length;
+        const useTwoColumns = count > CONFIG.COLUMN_THRESHOLD;
 
-        // Calculate the total height of the children stack
-        const totalChildrenStackHeight = node.children.reduce((sum, c) => sum + c.branchHeight, 0) +
-            (node.children.length - 1) * CONFIG.VERTICAL_GAP;
+        if (useTwoColumns) {
+            const midPoint = Math.ceil(count / 2);
+            const col1 = node.children.slice(0, midPoint);
+            const col2 = node.children.slice(midPoint);
 
-        // Start placing children so their stack is centered on parent's center Y
-        let currentTop = centerY - (totalChildrenStackHeight / 2);
+            // Calculate heights for both columns
+            const col1Height = col1.reduce((sum, c) => sum + (c as NodeWithDimensions).branchHeight, 0) + (col1.length - 1) * CONFIG.VERTICAL_GAP;
+            const col2Height = col2.reduce((sum, c) => sum + (c as NodeWithDimensions).branchHeight, 0) + (col2.length - 1) * CONFIG.VERTICAL_GAP;
 
-        node.children.forEach((child) => {
-            // Each child is centered within its branch slot
-            const childCenterY = currentTop + (child.branchHeight / 2);
+            let col1Top = centerY - (col1Height / 2);
+            let col2Top = centerY - (col2Height / 2);
 
-            assignCoordinates(child, childrenLeftX, childCenterY, level + 1, map, expandedIds, node.id);
+            // CRITICAL: Calculate max width of Col 1 to safely place Col 2
+            const maxCol1Width = col1.reduce((max, node) => {
+                let effectiveWidth = (node as NodeWithDimensions).width;
+                if (expandedIds.has(node.id) && node.children && node.children.length > 0) {
+                    const widestChild = node.children.reduce((w, child) => Math.max(w, (child as NodeWithDimensions).width), 0);
+                    effectiveWidth += CONFIG.HORIZONTAL_GAP + widestChild;
+                }
+                return Math.max(max, effectiveWidth);
+            }, 0);
 
-            currentTop += child.branchHeight + CONFIG.VERTICAL_GAP;
-        });
+            const col2LeftX = childrenLeftX + maxCol1Width + CONFIG.HORIZONTAL_GAP;
+
+            col1.forEach(child => {
+                const childCenterY = col1Top + ((child as NodeWithDimensions).branchHeight / 2);
+                assignCoordinates(child as NodeWithDimensions, childrenLeftX, childCenterY, level + 1, map, expandedIds, node.id);
+                col1Top += (child as NodeWithDimensions).branchHeight + CONFIG.VERTICAL_GAP;
+            });
+
+            col2.forEach(child => {
+                const childCenterY = col2Top + ((child as NodeWithDimensions).branchHeight / 2);
+                assignCoordinates(child as NodeWithDimensions, col2LeftX, childCenterY, level + 1, map, expandedIds, node.id);
+                col2Top += (child as NodeWithDimensions).branchHeight + CONFIG.VERTICAL_GAP;
+            });
+
+        } else {
+            // --- Standard Single Column ---
+            const totalChildrenStackHeight = node.children.reduce((sum, c) => sum + (c as NodeWithDimensions).branchHeight, 0) +
+                (node.children.length - 1) * CONFIG.VERTICAL_GAP;
+
+            let currentTop = centerY - (totalChildrenStackHeight / 2);
+
+            node.children.forEach((child) => {
+                // Each child is centered within its branch slot
+                const childCenterY = currentTop + ((child as NodeWithDimensions).branchHeight / 2);
+
+                assignCoordinates(child as NodeWithDimensions, childrenLeftX, childCenterY, level + 1, map, expandedIds, node.id);
+
+                currentTop += (child as NodeWithDimensions).branchHeight + CONFIG.VERTICAL_GAP;
+            });
+        }
     }
 }

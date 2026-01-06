@@ -29,12 +29,13 @@ export default config({
                 status: fields.select({
                     label: 'Status',
                     options: [
+                        { label: 'None', value: '' },
                         { label: 'Concept', value: 'concept' },
                         { label: 'Prototype', value: 'prototype' },
                         { label: 'Production', value: 'production' },
                         { label: 'Archived', value: 'archived' },
                     ],
-                    defaultValue: 'concept',
+                    defaultValue: '',
                 }),
                 description: fields.text({
                     label: 'Short Description',

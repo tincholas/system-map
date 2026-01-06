@@ -9,9 +9,15 @@ export async function getSystemMapData(): Promise<Node> {
     const nodesMap = await reader.collections.nodes.all();
 
     // 2. Convert to our Node interface
-    const allNodes: any[] = nodesMap.map((entry) => {
+    const allNodes = await Promise.all(nodesMap.map(async (entry) => {
         const slug = entry.slug;
         const data = entry.entry;
+
+        // Resolve content if it's a function (Keystatic Reader API)
+        let contentData = data.content;
+        if (typeof contentData === 'function') {
+            contentData = await contentData();
+        }
 
         return {
             id: slug,
@@ -26,10 +32,10 @@ export async function getSystemMapData(): Promise<Node> {
                 url: data.iframeConfig.url,
                 orientation: data.iframeConfig.orientation
             } : undefined,
-            content: JSON.stringify(data.content),
+            content: JSON.stringify(contentData),
             children: []
         };
-    });
+    }));
 
     // 3. Build Tree Structure
     const nodeLookup = new Map<string, any>();

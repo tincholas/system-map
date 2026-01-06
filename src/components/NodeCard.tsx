@@ -5,7 +5,7 @@ import { motion } from 'framer-motion';
 import { useSpring as useSpringThree, animated as animatedThree, to } from '@react-spring/three';
 import { useSpring as useSpringWeb, animated as animatedWeb } from '@react-spring/web';
 import { useRef, useState, useEffect } from 'react';
-import ReactMarkdown from 'react-markdown';
+import { DocumentRenderer } from '@keystatic/core/renderer';
 import { Carousel } from './Carousel';
 import { LayoutNode } from '../types/types';
 
@@ -37,6 +37,9 @@ const enterVariants = {
 
 export const NodeCard = ({ node, isActive, onClick, animationDelay = 0, transitionStyle }: NodeCardProps) => {
   const { x, y, width, height, title, type, status, description, isExpanded, content } = node;
+  if (title === 'About' && isExpanded) {
+    console.log('NodeCard content for About:', content);
+  }
 
   // Track if this node has completed its enter animation
   const isFirstRender = useRef(true);
@@ -225,14 +228,14 @@ export const NodeCard = ({ node, isActive, onClick, animationDelay = 0, transiti
                   {/* Inner content - full expanded size, clipped by parent */}
                   <div
                     style={{
-                      width: canExpand ? `${EXPANDED_WIDTH}px` : '100%',
-                      height: canExpand ? `${EXPANDED_HEIGHT}px` : '100%',
+                      width: isExpanded ? `${EXPANDED_WIDTH}px` : '100%',
+                      height: isExpanded ? `${EXPANDED_HEIGHT}px` : '100%',
                     }}
                     className="p-4 flex flex-col"
                   >
                     <div className="flex justify-between items-start shrink-0">
                       <span className="text-xs font-mono text-cyan-500 uppercase tracking-widest">{node.label || type}</span>
-                      {status && (
+                      {!!status && (
                         <span className={`text-[10px] px-1 py-0.5 border rounded ${status === 'production' ? 'border-green-500 text-green-500' :
                           status === 'prototype' ? 'border-yellow-500 text-yellow-500' :
                             'border-neutral-500 text-neutral-500'
@@ -247,16 +250,32 @@ export const NodeCard = ({ node, isActive, onClick, animationDelay = 0, transiti
                       {description && <p className="text-neutral-400 text-xs line-clamp-2">{description}</p>}
 
                       {/* Expanded content - only visible when container grows */}
-                      {canExpand && (
-                        <div className="mt-4 pt-4 border-t border-cyan-500/20 flex-1 flex flex-col min-h-0">
-                          {node.gallery && node.gallery.length > 0 && (
-                            <Carousel items={node.gallery} />
-                          )}
-                          <div className="prose prose-invert prose-sm max-w-none prose-p:text-neutral-300 prose-headings:text-cyan-400 prose-a:text-cyan-500 max-h-[450px] overflow-y-auto pr-2">
-                            <ReactMarkdown>{content || "Detailed project content will appear here. Click to expand and see more information about this project."}</ReactMarkdown>
-                          </div>
-                        </div>
-                      )}
+                      <div className="flex-1 mt-4 min-h-0 flex flex-col">
+                        {canExpand && (
+                          <motion.div
+                            initial={{ opacity: 0 }}
+                            animate={{ opacity: isExpanded ? 1 : 0 }}
+                            transition={{ duration: 0.3, delay: isExpanded ? 0.2 : 0 }}
+                            className={`
+                              flex-1 flex flex-col
+                              ${!isExpanded ? 'pointer-events-none' : ''}
+                            `}
+                          >
+                            <div className="pt-4 border-t border-cyan-500/20 flex-1 flex flex-col min-h-0">
+                              {node.gallery && node.gallery.length > 0 && (
+                                <Carousel items={node.gallery} />
+                              )}
+                              <div className="prose prose-invert prose-sm max-w-none prose-p:text-neutral-300 prose-headings:text-cyan-400 prose-a:text-cyan-500 max-h-[450px] overflow-y-auto pr-2">
+                                {content ? (
+                                  <DocumentRenderer document={JSON.parse(content)} />
+                                ) : (
+                                  <p className="text-neutral-500 italic">Detailed project content will appear here. Click to expand and see more information about this project.</p>
+                                )}
+                              </div>
+                            </div>
+                          </motion.div>
+                        )}
+                      </div>
                     </div>
 
                     <div className="absolute -top-2 -right-2 w-2 h-2 bg-cyan-500 rounded-sm opacity-50" />
