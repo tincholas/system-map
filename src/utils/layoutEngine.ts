@@ -16,12 +16,23 @@ const CONFIG = {
  * Calculates layout for a tree of nodes.
  * ...
  */
+export interface LayoutContext {
+    isMobile?: boolean;
+    viewportWidth?: number;
+    viewportHeight?: number;
+}
+
+/**
+ * Calculates layout for a tree of nodes.
+ * ...
+ */
 export function calculateLayout(
     root: Node,
-    expandedIds: Set<string>
+    expandedIds: Set<string>,
+    context: LayoutContext = {}
 ): Map<string, LayoutNode> {
     const layoutMap = new Map<string, LayoutNode>();
-    const rootWithHeight = enrichWithHeight(root, expandedIds);
+    const rootWithHeight = enrichWithHeight(root, expandedIds, context);
     assignCoordinates(rootWithHeight, 0, 0, 0, layoutMap, expandedIds);
     return layoutMap;
 }
@@ -33,7 +44,7 @@ interface NodeWithDimensions extends Omit<Node, 'children'> {
     height: number;
 }
 
-function enrichWithHeight(node: Node, expandedIds: Set<string>): NodeWithDimensions {
+function enrichWithHeight(node: Node, expandedIds: Set<string>, context: LayoutContext): NodeWithDimensions {
     const isExpanded = expandedIds.has(node.id);
 
     // Node Types
@@ -44,13 +55,22 @@ function enrichWithHeight(node: Node, expandedIds: Set<string>): NodeWithDimensi
     let height = CONFIG.NODE_HEIGHT;
 
     if (isExpanded && isArticle) {
-        width = CONFIG.EXPANDED_WIDTH;
-        height = CONFIG.EXPANDED_HEIGHT;
+        if (context.isMobile && context.viewportWidth && context.viewportHeight) {
+            // Mobile: Expanded article takes up nearly FULL screen width
+            // User requested ~50% larger feel. 
+            width = context.viewportWidth * 0.95;
+            // Allow it to be taller.
+            height = context.viewportHeight * 0.85;
+
+            // Relax clamps significantly
+            width = Math.max(350, Math.min(width, 1000));
+            height = Math.max(600, Math.min(height, 1200));
+        } else {
+            width = CONFIG.EXPANDED_WIDTH;
+            height = CONFIG.EXPANDED_HEIGHT;
+        }
     } else if (isVirtualFrame) {
         // Virtual frames are sized based on their config (passed via data or inferred)
-        // For now, we need to pass this data down.
-        // Actually, the virtual node created below will carry the size info needed for rendering,
-        // but here we set physical layout dimensions.
         if (node.iframeConfig?.orientation === 'mobile') {
             width = CONFIG.MOBILE_WIDTH;
             height = CONFIG.MOBILE_HEIGHT;
@@ -82,7 +102,7 @@ function enrichWithHeight(node: Node, expandedIds: Set<string>): NodeWithDimensi
         return { ...rest, children: undefined, branchHeight: height, width, height };
     }
 
-    const enrichedChildren = processedChildren.map(child => enrichWithHeight(child, expandedIds));
+    const enrichedChildren = processedChildren.map(child => enrichWithHeight(child, expandedIds, context));
 
     // Calculate effective height based on layout strategy (Single vs Multi Column)
     let totalChildrenHeight = 0;

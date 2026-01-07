@@ -76,10 +76,6 @@ export const NodeCard = ({ node, isActive, onClick, animationDelay = 0, transiti
 
   // Special Rendering for Virtual Frames (Sidecar)
   if ((type === 'virtual-frame' || type === 'experiment') && node.iframeConfig) {
-    const isMobile = node.iframeConfig.orientation === 'mobile';
-    const width = isMobile ? 450 : 800;
-    const height = isMobile ? 800 : 600;
-
     return (
       <animatedThree.group
         // @ts-ignore
@@ -228,13 +224,13 @@ export const NodeCard = ({ node, isActive, onClick, animationDelay = 0, transiti
                   {/* Inner content - full expanded size, clipped by parent */}
                   <div
                     style={{
-                      width: isExpanded ? `${EXPANDED_WIDTH}px` : '100%',
-                      height: isExpanded ? `${EXPANDED_HEIGHT}px` : '100%',
+                      width: isExpanded ? `${node.width}px` : '100%',
+                      height: isExpanded ? `${node.height}px` : '100%',
                     }}
                     className="p-4 flex flex-col"
                   >
                     <div className="flex justify-between items-start shrink-0">
-                      <span className="text-xs font-mono text-cyan-500 uppercase tracking-widest">{node.label || type}</span>
+                      <span className="text-xs md:text-xs font-mono text-cyan-500 uppercase tracking-widest">{node.label || type}</span>
                       {!!status && (
                         <span className={`text-[10px] px-1 py-0.5 border rounded ${status === 'production' ? 'border-green-500 text-green-500' :
                           status === 'prototype' ? 'border-yellow-500 text-yellow-500' :
@@ -246,8 +242,9 @@ export const NodeCard = ({ node, isActive, onClick, animationDelay = 0, transiti
                     </div>
 
                     <div className="flex-1 mt-2">
-                      <h3 className="text-white font-bold text-lg leading-tight mb-1">{title}</h3>
-                      {description && <p className="text-neutral-400 text-xs line-clamp-2">{description}</p>}
+                      {/* Mobile: text-2xl. Desktop: text-xl -> lg:text-2xl */}
+                      <h3 className="text-white font-bold text-2xl md:text-xl lg:text-2xl leading-tight mb-1">{title}</h3>
+                      {description && <p className="text-neutral-400 text-base md:text-xs line-clamp-2">{description}</p>}
 
                       {/* Expanded content - only visible when container grows */}
                       <div className="flex-1 mt-4 min-h-0 flex flex-col">
@@ -265,7 +262,8 @@ export const NodeCard = ({ node, isActive, onClick, animationDelay = 0, transiti
                               {node.gallery && node.gallery.length > 0 && (
                                 <Carousel items={node.gallery} />
                               )}
-                              <div className="prose prose-invert prose-sm max-w-none prose-p:text-neutral-300 prose-headings:text-cyan-400 prose-a:text-cyan-500 max-h-[450px] overflow-y-auto pr-2">
+                              {/* Prose: Mobile = base (16px), Desktop = sm (14px) */}
+                              <div className="prose prose-invert prose-base md:prose-sm max-w-none prose-p:text-neutral-300 prose-headings:text-cyan-400 prose-a:text-cyan-500 max-h-[450px] overflow-y-auto pr-2">
                                 {content ? (
                                   <DocumentRenderer document={JSON.parse(content)} />
                                 ) : (

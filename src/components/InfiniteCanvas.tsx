@@ -56,16 +56,71 @@ const CameraController = ({ layoutMap, activeId }: CameraControllerProps) => {
 
         if (layoutMap.has(targetId)) {
             const node = layoutMap.get(targetId);
+            const isMobile = size.width < 768;
 
             // Calculate Target Zoom:
+            // Standard zoom based on node visibility
             const zoomHeight = size.height / (node.branchHeight * 1.5);
             const zoomWidth = size.width / (node.width * 1.5);
             let targetZoom = Math.min(zoomHeight, zoomWidth);
             targetZoom = Math.max(0.4, Math.min(2.5, targetZoom));
 
-            const targetViewportWidth = size.width / targetZoom;
-            const targetX = node.x + (0.4 * targetViewportWidth);
+            let targetX = 0;
             const targetY = -node.y;
+
+            if (isMobile) {
+                // Mobile Logic
+                const isArticle = node.type === 'article' || node.type === 'project';
+                const hasChildren = node.children && node.children.length > 0;
+
+                // Adjust zoom for mobile readability
+                // CRITICAL FIX: Since we made nodes larger (95% of viewport), we must reduce padding
+                // otherwise the camera zooms out to fit "1.5x" the node, making it look small again.
+                // We use 1.05 divisor for tight fit (almost filling screen).
+                if (isArticle) {
+                    const zoomHeight = size.height / (node.branchHeight * 1.05);
+                    const zoomWidth = size.width / (node.width * 1.05);
+                    targetZoom = Math.min(zoomHeight, zoomWidth);
+                    // Clamp zoom to reasonable levels for mobile
+                    targetZoom = Math.max(0.6, Math.min(2.0, targetZoom));
+                } else {
+                    // Standard clamp for non-articles
+                    targetZoom = Math.max(0.6, Math.min(3.0, targetZoom));
+                }
+
+                if (!isArticle && hasChildren) {
+                    // CATEGORY / FOLDER Mode:
+                    // Focus on Children. Shift Parent to Left Edge.
+                    // TargetX is the center of the camera view.
+                    // We want Parent's Right Edge (node.x + node.width) to be at Viewport Left + Padding.
+                    // Viewport Width in World Units = size.width / targetZoom
+                    const viewportWidthWorld = size.width / targetZoom;
+                    // Position Camera such that:
+                    // (node.x + node.width) = (CameraX - viewportWidthWorld/2) + Padding
+                    // CameraX = (node.x + node.width) + viewportWidthWorld/2 - Padding
+
+                    const padding = 20; // World units or pixels? This logic mixes units if not careful.
+                    // The "size" from useThree is in screen pixels, but camera position is World Units.
+                    // Orthographic camera: zoom 1 means 1 unit = 1 pixel (usually) if view is setup that way?
+                    // Canvas (orthographic) -> zoom changes unit scale.
+                    // Correct: Viewport covers "size.width / zoom" World Units.
+
+                    const paddingWorld = 50; // Arbitrary gap
+                    targetX = (node.x + node.width) + (viewportWidthWorld / 2) - paddingWorld;
+
+                    // Actually, let's just center the FIRST CHILD column?
+                    // Children start at: node.x + node.width + GAP
+                    // targetX = node.x + node.width + 100 + (node.children[0].width/2) ?
+                    // The "Shift Parent Left" is safer.
+                } else {
+                    // Article or Leaf Node: Center it.
+                    targetX = node.x + (node.width / 2);
+                }
+            } else {
+                // Desktop Logic
+                const targetViewportWidth = size.width / targetZoom;
+                targetX = node.x + (0.4 * targetViewportWidth);
+            }
 
             if (!hasTeleportedRef.current) {
                 // --- TELEPORT (Instant) ---
@@ -149,6 +204,19 @@ export const InfiniteCanvas = ({ initialData }: InfiniteCanvasProps) => {
     const [expandedIds, setExpandedIds] = useState<Set<string>>(new Set([]));
     const [activeId, setActiveId] = useState<string | null>(null);
 
+    // Track Window Size for Layout Context
+    const [windowSize, setWindowSize] = useState({ width: 0, height: 0 });
+
+    useEffect(() => {
+        const handleResize = () => {
+            setWindowSize({ width: window.innerWidth, height: window.innerHeight });
+        };
+        // Initial set
+        handleResize();
+        window.addEventListener('resize', handleResize);
+        return () => window.removeEventListener('resize', handleResize);
+    }, []);
+
     // Deep Linking: Hydrate state from URL (ONCE on mount)
     // We use a ref to ensure we grab the initial param value at mount time
     // without needing it in the dependency array (which would trigger updates).
@@ -211,8 +279,13 @@ export const InfiniteCanvas = ({ initialData }: InfiniteCanvasProps) => {
 
     // Recalculate layout whenever expansion state OR data changes
     const layoutMap = useMemo(() => {
-        return calculateLayout(rootData, expandedIds);
-    }, [rootData, expandedIds]); // Depend on rootData
+        const isMobile = windowSize.width > 0 && windowSize.width < 768;
+        return calculateLayout(rootData, expandedIds, {
+            isMobile,
+            viewportWidth: windowSize.width,
+            viewportHeight: windowSize.height
+        });
+    }, [rootData, expandedIds, windowSize]); // Depend on rootData and windowSize
 
 
     const nodes = Array.from(layoutMap.values());
