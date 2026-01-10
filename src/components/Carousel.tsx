@@ -60,7 +60,7 @@ export const Carousel = ({ items }: CarouselProps) => {
             <img
                 src={url}
                 alt="Gallery item"
-                className="w-full h-full object-cover"
+                className="w-full h-full object-contain"
             />
         );
     };
