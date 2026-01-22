@@ -66,8 +66,8 @@ export const Carousel = ({ items }: CarouselProps) => {
     };
 
     return (
-        <div className="relative w-full h-64 mb-6 bg-black/50 border border-cyan-900/50 rounded-lg overflow-hidden group">
-            <div className="w-full h-full flex items-center justify-center">
+        <div className="relative w-full mb-6 bg-black/50 border border-cyan-900/50 rounded-lg overflow-hidden group pb-[56.25%]">
+            <div className="absolute inset-0 w-full h-full flex items-center justify-center">
                 {renderItem(items[currentIndex])}
             </div>
 
@@ -75,18 +75,18 @@ export const Carousel = ({ items }: CarouselProps) => {
                 <>
                     <button
                         onClick={prev}
-                        className="absolute left-2 top-1/2 -translate-y-1/2 p-1 bg-black/50 text-white rounded-full hover:bg-cyan-500/50 transition-colors opacity-0 group-hover:opacity-100"
+                        className="absolute left-2 top-1/2 -translate-y-1/2 p-1 bg-black/50 text-white rounded-full hover:bg-cyan-500/50 transition-colors opacity-0 group-hover:opacity-100 z-10"
                     >
                         <ChevronLeft size={24} />
                     </button>
                     <button
                         onClick={next}
-                        className="absolute right-2 top-1/2 -translate-y-1/2 p-1 bg-black/50 text-white rounded-full hover:bg-cyan-500/50 transition-colors opacity-0 group-hover:opacity-100"
+                        className="absolute right-2 top-1/2 -translate-y-1/2 p-1 bg-black/50 text-white rounded-full hover:bg-cyan-500/50 transition-colors opacity-0 group-hover:opacity-100 z-10"
                     >
                         <ChevronRight size={24} />
                     </button>
 
-                    <div className="absolute bottom-2 left-1/2 -translate-x-1/2 flex gap-1">
+                    <div className="absolute bottom-2 left-1/2 -translate-x-1/2 flex gap-1 z-10">
                         {items.map((_, idx) => (
                             <div
                                 key={idx}
