@@ -66,7 +66,7 @@ const CameraController = ({ layoutMap, activeId }: CameraControllerProps) => {
             targetZoom = Math.max(0.4, Math.min(2.5, targetZoom));
 
             let targetX = 0;
-            const targetY = -node.y;
+            let targetY = -node.y;
 
             if (isMobile) {
                 // Mobile Logic
@@ -78,11 +78,27 @@ const CameraController = ({ layoutMap, activeId }: CameraControllerProps) => {
                 // otherwise the camera zooms out to fit "1.5x" the node, making it look small again.
                 // We use 1.05 divisor for tight fit (almost filling screen).
                 if (isArticle) {
-                    const zoomHeight = size.height / (node.branchHeight * 1.05);
-                    const zoomWidth = size.width / (node.width * 1.05);
-                    targetZoom = Math.min(zoomHeight, zoomWidth);
-                    // Clamp zoom to reasonable levels for mobile
-                    targetZoom = Math.max(0.6, Math.min(2.0, targetZoom));
+                    // Zoom so article takes 90% of screen width
+                    targetZoom = (size.width * 0.9) / node.width;
+
+                    // Clamp zoom to reasonable levels
+                    targetZoom = Math.max(0.6, Math.min(2.5, targetZoom));
+
+                    // Pan to align Top of Node near Top of Viewport
+                    // Node Top (in World Space) = -node.y + (node.height / 2)
+                    // Viewport Top (relative to camera) = size.height / (2 * zoom)
+                    // We want NodeTop = CameraY + ViewportTop - Padding
+                    // CameraY = NodeTop - ViewportTop + Padding
+
+                    const nodeTopY = -node.y + (node.height / 2);
+                    const viewportHalfHeightWorld = size.height / (2 * targetZoom);
+                    const topPaddingWorld = 80 / targetZoom; // 80px visual padding
+
+                    targetY = nodeTopY - viewportHalfHeightWorld + topPaddingWorld;
+
+                    // X is still centered
+                    targetX = node.x + (node.width / 2);
+
                 } else {
                     // Standard clamp for non-articles
                     targetZoom = Math.max(0.6, Math.min(3.0, targetZoom));
@@ -365,6 +381,17 @@ export const InfiniteCanvas = ({ initialData }: InfiniteCanvasProps) => {
             <div className="absolute bottom-4 left-4 pointer-events-none z-10">
                 <h1 className="text-sm text-[#5C94D1]/70 font-[family-name:var(--font-cad)]">SYSTEM MAP v0.1</h1>
             </div>
+
+            {expandedIds.has(rootData.id) && (
+                <div className="absolute bottom-4 right-4 z-50 pointer-events-auto">
+                    <button
+                        onClick={() => toggleNode(rootData.id)}
+                        className="text-xs text-cyan-500/70 hover:text-cyan-400 font-mono tracking-widest uppercase transition-colors"
+                    >
+                        [ - ] COLLAPSE ALL
+                    </button>
+                </div>
+            )}
 
             {/* Vignette Overlay */}
             <div

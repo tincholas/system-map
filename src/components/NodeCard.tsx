@@ -263,7 +263,7 @@ export const NodeCard = ({ node, isActive, onClick, animationDelay = 0, transiti
                                 <Carousel items={node.gallery} />
                               )}
                               {/* Prose: Mobile = base (16px), Desktop = sm (14px) */}
-                              <div className="prose prose-invert prose-base md:prose-sm max-w-none prose-p:text-neutral-300 prose-headings:text-cyan-400 prose-a:text-cyan-500 max-h-[450px] overflow-y-auto pr-2">
+                              <div className="prose prose-invert prose-base md:prose-sm max-w-none prose-p:text-neutral-300 prose-headings:text-cyan-400 prose-a:text-cyan-500 pr-2">
                                 {content ? (
                                   <DocumentRenderer document={JSON.parse(content)} />
                                 ) : (
