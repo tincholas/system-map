@@ -2,10 +2,11 @@
 title: Not WebGL
 type: article
 status: prototype
+description: Why would anyone do it this way?
 iframeConfig:
   url: https://stonecallstudio.com/JSTests/Not_WebGL/index.html
   orientation: desktop
 parent: 3d-folder
 gallery: []
 ---
-In this experiment, I tried to replicate old 3d fixed function pipelines to, from a defined set of vertices, apply world, view and projection transformation, calculate where the vertices should appear on screen, and shade all faces. I generated a UV sphere with some sinusoidal noise which created a nice effect, calculated screenspace positions of all faces, calculated the light intensity at each face given the face normal and the light direciton and then painted if all to screen. Needless to say this could have been done much more simply using webGL, but the trill of knowing how things work is very alluring.
+In this experiment, I tried to replicate old 3d fixed function pipelines. For a model I just generated a UV sphere with some sinusoidal noise which created a nice effect, calculated screenspace positions of all faces, calculated the light intensity at each face given the face normal and the light direction and then painted it all to screen. Needless to say this could have been done much more simply using webGL, but the whole point was to build it out myself. Up to this point though, I don't think I was pushing my boundaries, I had done similar things previously, just not in javascript.
